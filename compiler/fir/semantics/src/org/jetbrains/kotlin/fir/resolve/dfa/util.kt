@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.fir.types.ConeTypeContext
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.unwrapFakeOverrides
 
-fun TypeStatement?.smartCastedType(context: ConeTypeContext, originalType: ConeKotlinType): ConeKotlinType =
+fun VariableTypeStatement?.smartCastedType(context: ConeTypeContext, originalType: ConeKotlinType): ConeKotlinType =
     if (this != null && exactType.isNotEmpty()) {
         context.intersectTypes(exactType.toMutableList().also { it += originalType })
     } else {

@@ -17,11 +17,20 @@ import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirNamedArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.UnresolvedExpressionTypeAccess
 import org.jetbrains.kotlin.fir.expressions.builder.buildVarargArgumentsExpression
+import org.jetbrains.kotlin.fir.resolve.ResolutionMode
+import org.jetbrains.kotlin.fir.resolve.dfa.PersistentFlow
+import org.jetbrains.kotlin.fir.resolve.dfa.inferredConstraints
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.StandardClassIds
+import org.jetbrains.kotlin.types.AbstractTypeChecker
+import org.jetbrains.kotlin.types.AbstractTypeRefiner
 import org.jetbrains.kotlin.types.ConstantValueKind
+import org.jetbrains.kotlin.types.TypeCheckerState
+import org.jetbrains.kotlin.types.model.SimpleTypeMarker
+import org.jetbrains.kotlin.types.model.TypeConstructorMarker
+import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
 
 
 internal inline var FirExpression.resultType: ConeKotlinType
@@ -123,3 +132,55 @@ fun ConstantValueKind<*>.expectedConeType(session: FirSession): ConeKotlinType {
         ConstantValueKind.Error -> error("Unexpected error ConstantValueKind")
     }
 }
+
+fun FirPartialBodyResolveTransformer.localTypeCoercion(
+    expression: FirExpression,
+    resolutionMode: ResolutionMode,
+) {
+    val expectedType = resolutionMode.coercionExpectedType ?: return
+    val expectedConeType = expectedType.coneTypeSafe<ConeKotlinType>() ?: return
+    val expressionConeType = expression.resultType
+    if (AbstractTypeChecker.isSubtypeOf(localTypeCheckerState, expressionConeType, expectedConeType)) {
+        expression.resultType = ConeTypeIntersector.intersectTypes(session.typeContext, listOf(expressionConeType, expectedConeType))
+    }
+}
+
+val FirPartialBodyResolveTransformer.localTypeContext: TypeSystemInferenceExtensionContext
+    get() = context.dataFlowAnalyzerContext.graphBuilder.lastNodeOrNull?.flow?.let { flow -> LocalTypeContext(session.typeContext, flow) }
+        ?: session.typeContext
+
+val FirPartialBodyResolveTransformer.localTypeCheckerState: TypeCheckerState
+    get() = TypeCheckerState(
+        isErrorTypeEqualsToAnything = false,
+        isStubTypeEqualsToAnything = false,
+        allowedTypeVariable = true,
+        typeSystemContext = localTypeContext,
+        kotlinTypePreparator = ConeTypePreparator(session),
+        kotlinTypeRefiner = AbstractTypeRefiner.Default
+    )
+
+class LocalTypeContext(private val globalInferenceContext: ConeInferenceContext, private val flow: PersistentFlow) :
+    TypeSystemInferenceExtensionContext by globalInferenceContext {
+    // todo: memorize it or save it into flow
+    private val inferredConstraints by lazy { inferredConstraints(flow, globalInferenceContext) }
+
+    override fun TypeConstructorMarker.supertypes(): Collection<ConeKotlinType> {
+        val global = with(globalInferenceContext) { this@supertypes.supertypes() }
+        val local = inferredConstraints
+            .filter { it.subtype.typeConstructor() == this@supertypes }
+            .map { it.supertype as ConeKotlinType }
+        return global + local
+    }
+
+    override fun SimpleTypeMarker.fastCorrespondingSupertypes(constructor: TypeConstructorMarker): List<SimpleTypeMarker>? {
+        return null
+    }
+}
+
+private val ResolutionMode.coercionExpectedType: FirResolvedTypeRef?
+    get() = if (
+        this is ResolutionMode.WithExpectedType &&
+        !fromCast &&
+        @OptIn(UnexpandedTypeCheck::class)
+        !(expectedTypeRef.isUnit && mayBeCoercionToUnitApplied)
+    ) expectedTypeRef else null

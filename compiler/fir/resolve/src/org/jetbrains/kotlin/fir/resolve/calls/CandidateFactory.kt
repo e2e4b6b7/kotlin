@@ -15,6 +15,8 @@ import org.jetbrains.kotlin.fir.declarations.builder.buildErrorProperty
 import org.jetbrains.kotlin.fir.declarations.fullyExpandedClass
 import org.jetbrains.kotlin.fir.diagnostics.ConeDiagnostic
 import org.jetbrains.kotlin.fir.expressions.*
+import org.jetbrains.kotlin.fir.resolve.ResolutionMode
+import org.jetbrains.kotlin.fir.resolve.dfa.PersistentFlow
 import org.jetbrains.kotlin.fir.resolve.isIntegerLiteralOrOperatorCall
 import org.jetbrains.kotlin.fir.resolve.toFirRegularClass
 import org.jetbrains.kotlin.fir.scopes.FirScope
@@ -34,7 +36,8 @@ class CandidateFactory private constructor(
 
     companion object {
         private fun buildBaseSystem(context: ResolutionContext, callInfo: CallInfo): ConstraintStorage {
-            val system = context.inferenceComponents.createConstraintSystem()
+            val system =
+                context.inferenceComponents.createConstraintSystem(context)
             system.addOuterSystem(context.bodyResolveContext.outerConstraintStorage)
             callInfo.arguments.forEach {
                 system.addSubsystemFromExpression(it)
@@ -67,7 +70,7 @@ class CandidateFactory private constructor(
             dispatchReceiver,
             givenExtensionReceiverOptions,
             explicitReceiverKind,
-            context.inferenceComponents.constraintSystemFactory,
+            context.inferenceComponents.constraintSystemFactory(context),
             baseSystem,
             callInfo,
             scope,
@@ -154,7 +157,7 @@ class CandidateFactory private constructor(
             dispatchReceiver = null,
             givenExtensionReceiverOptions = emptyList(),
             explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
-            context.inferenceComponents.constraintSystemFactory,
+            context.inferenceComponents.constraintSystemFactory(context),
             baseSystem,
             callInfo,
             originScope = null,

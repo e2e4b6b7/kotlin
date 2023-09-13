@@ -139,7 +139,7 @@ object FirReturnsImpliesAnalyzer : FirControlFlowChecker() {
             effectDeclaration.condition, argumentVariables, substitutor = null
         ) { logicSystem.approveOperationStatement(flow, it) } ?: return true
 
-        return !conditionStatements.values.all { requirement ->
+        return !conditionStatements.variableStatements.values.all { requirement ->
             val originalType = requirement.variable.identifier.symbol.correspondingParameterType ?: return@all true
             val requiredType = requirement.smartCastedType(typeContext, originalType)
             val actualType = flow.getTypeStatement(requirement.variable).smartCastedType(typeContext, originalType)

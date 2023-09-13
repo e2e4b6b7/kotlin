@@ -487,6 +487,7 @@ object AbstractTypeChecker {
     @OptIn(ObsoleteTypeKind::class)
     private fun TypeSystemContext.isCommonDenotableType(type: KotlinTypeMarker): Boolean =
         type.typeConstructor().isDenotable() &&
+                !type.typeConstructor().isTypeParameterTypeConstructor() &&
                 !type.isDynamic() && !type.isDefinitelyNotNullType() && !type.isNotNullTypeParameter() &&
                 type.lowerBoundIfFlexible().typeConstructor() == type.upperBoundIfFlexible().typeConstructor()
 
@@ -608,7 +609,8 @@ object AbstractTypeChecker {
             return it
         }
 
-        if (!superConstructor.isClassTypeConstructor() && subType.isClassType()) return emptyList()
+        if (!(superConstructor.isClassTypeConstructor() || superConstructor.isTypeParameterTypeConstructor()) && subType.isClassType())
+            return emptyList()
 
         if (superConstructor.isCommonFinalClassConstructor()) {
             return if (areEqualTypeConstructors(subType.typeConstructor(), superConstructor))

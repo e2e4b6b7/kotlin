@@ -47,7 +47,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         flow.backwardsAliasMap[underlyingVariable] = flow.backwardsAliasMap[underlyingVariable]?.add(alias) ?: persistentSetOf(alias)
     }
 
-    fun addTypeStatement(flow: MutableFlow, statement: TypeStatement): TypeStatement? {
+    fun addVariableTypeStatement(flow: MutableFlow, statement: VariableTypeStatement): VariableTypeStatement? {
         if (statement.exactType.isEmpty()) return null
         val variable = statement.variable
         val oldExactType = flow.approvedTypeStatements[variable]?.exactType
@@ -56,13 +56,21 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         return PersistentTypeStatement(variable, newExactType).also { flow.approvedTypeStatements[variable] = it }
     }
 
-    fun addTypeStatements(flow: MutableFlow, statements: TypeStatements): List<TypeStatement> =
-        statements.values.mapNotNull { addTypeStatement(flow, it) }
+    fun addTemporalValueTypeStatement(flow: MutableFlow, statement: TemporalValueTypeStatement) {
+        flow.typeIntersections.add(statement)
+    }
+
+    fun addTypeStatements(flow: MutableFlow, statements: TypeStatements) {
+        statements.apply {
+            variableStatements.values.forEach { addVariableTypeStatement(flow, it) }
+            temporalValueStatements.forEach { addTemporalValueTypeStatement(flow, it) }
+        }
+    }
 
     fun addImplication(flow: MutableFlow, implication: Implication) {
         val effect = implication.effect
         if (effect == implication.condition) return
-        if (effect is TypeStatement && (effect.isEmpty ||
+        if (effect is VariableTypeStatement && (effect.isEmpty ||
                     flow.approvedTypeStatements[effect.variable]?.exactType?.containsAll(effect.exactType) == true)
         ) return
         val variable = implication.condition.variable
@@ -230,7 +238,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         approvedStatement: OperationStatement,
         removeApprovedOrImpossible: Boolean
     ): TypeStatements {
-        val result = mutableMapOf<RealVariable, MutableTypeStatement>()
+        val result = newTypeStatementsBuilder<MutableTypeStatement>()
         val queue = LinkedList<OperationStatement>().apply { this += approvedStatement }
         val approved = mutableSetOf<OperationStatement>()
         while (queue.isNotEmpty()) {
@@ -242,7 +250,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
             val variable = next.variable
             if (variable.isReal()) {
                 val impliedType = if (operation == Operation.EqNull) nullableNothingType else anyType
-                result.getOrPut(variable) { MutableTypeStatement(variable) }.exactType.add(impliedType)
+                result.variableStatements.getOrPut(variable) { MutableTypeStatement(variable) }.exactType.add(impliedType)
             }
 
             val statements = logicStatements[variable] ?: continue
@@ -251,8 +259,10 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
                 if (knownValue == true) {
                     when (val effect = it.effect) {
                         is OperationStatement -> queue += effect
-                        is TypeStatement ->
-                            result.getOrPut(effect.variable) { MutableTypeStatement(effect.variable) } += effect
+                        is VariableTypeStatement ->
+                            result.variableStatements.getOrPut(effect.variable) { MutableTypeStatement(effect.variable) } += effect
+                        is TemporalValueTypeStatement ->
+                            result.temporalValueStatements.add(effect)
                     }
                 }
                 removeApprovedOrImpossible && knownValue != null
@@ -270,7 +280,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
 
     // ------------------------------- Public TypeStatement util functions -------------------------------
 
-    fun orForTypeStatements(left: TypeStatements, right: TypeStatements): TypeStatements = when {
+    private fun orForVariableTypeStatements(left: VariableTypeStatements, right: VariableTypeStatements): VariableTypeStatements = when {
         left.isEmpty() -> left
         right.isEmpty() -> right
         else -> buildMap {
@@ -280,7 +290,13 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         }
     }
 
-    fun andForTypeStatements(left: TypeStatements, right: TypeStatements): TypeStatements = when {
+    private fun orForTemporalTypeStatements(left: TemporalTypeStatements, right: TemporalTypeStatements): TemporalTypeStatements =
+        left + right
+
+    private fun andForTemporalTypeStatements(left: TemporalTypeStatements, right: TemporalTypeStatements): TemporalTypeStatements =
+        left.intersect(right)
+
+    private fun andForVariableTypeStatements(left: VariableTypeStatements, right: VariableTypeStatements): VariableTypeStatements = when {
         left.isEmpty() -> right
         right.isEmpty() -> left
         else -> left.toMutableMap().apply {
@@ -290,14 +306,32 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         }
     }
 
-    private operator fun MutableTypeStatement.plusAssign(other: TypeStatement) {
+    fun orForTypeStatements(left: TypeStatements, right: TypeStatements): TypeStatements = when {
+        left.isEmpty() -> left
+        right.isEmpty() -> right
+        else -> newTypeStatements(
+            orForVariableTypeStatements(left.variableStatements, right.variableStatements),
+            orForTemporalTypeStatements(left.temporalValueStatements, right.temporalValueStatements)
+        )
+    }
+
+    fun andForTypeStatements(left: TypeStatements, right: TypeStatements): TypeStatements = when {
+        left.isEmpty() -> right
+        right.isEmpty() -> left
+        else -> newTypeStatements(
+            andForVariableTypeStatements(left.variableStatements, right.variableStatements),
+            andForTemporalTypeStatements(left.temporalValueStatements, right.temporalValueStatements)
+        )
+    }
+
+    private operator fun MutableTypeStatement.plusAssign(other: VariableTypeStatement) {
         exactType += other.exactType
     }
 
-    fun and(a: TypeStatement?, b: TypeStatement): TypeStatement =
+    fun and(a: VariableTypeStatement?, b: VariableTypeStatement): VariableTypeStatement =
         a?.toMutable()?.apply { this += b } ?: b
 
-    fun and(statements: Collection<TypeStatement>): TypeStatement? {
+    fun and(statements: Collection<VariableTypeStatement>): VariableTypeStatement? {
         when (statements.size) {
             0 -> return null
             1 -> return statements.first()
@@ -310,7 +344,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         return result
     }
 
-    fun or(statements: Collection<TypeStatement>): TypeStatement? {
+    fun or(statements: Collection<VariableTypeStatement>): VariableTypeStatement? {
         when (statements.size) {
             0 -> return null
             1 -> return statements.first()
@@ -330,13 +364,13 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
     }
 }
 
-private fun TypeStatement.toPersistent(): PersistentTypeStatement = when (this) {
+private fun VariableTypeStatement.toPersistent(): PersistentTypeStatement = when (this) {
     is PersistentTypeStatement -> this
     // If this statement was obtained via `toMutable`, `toPersistentSet` will call `build`.
     else -> PersistentTypeStatement(variable, exactType.toPersistentSet())
 }
 
-private fun TypeStatement.toMutable(): MutableTypeStatement = when (this) {
+private fun VariableTypeStatement.toMutable(): MutableTypeStatement = when (this) {
     is PersistentTypeStatement -> MutableTypeStatement(variable, exactType.builder())
     else -> MutableTypeStatement(variable, LinkedHashSet(exactType))
 }
@@ -391,4 +425,5 @@ private fun Statement.replaceVariable(from: RealVariable, to: RealVariable): Sta
         is OperationStatement -> copy(variable = to)
         is PersistentTypeStatement -> copy(variable = to)
         is MutableTypeStatement -> MutableTypeStatement(to, exactType)
+        is TemporalValueTypeStatement -> this
     }

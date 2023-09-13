@@ -32,7 +32,7 @@ class FirDelegatedPropertyInferenceSession(
     private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
 ) : FirInferenceSessionForChainedResolve(resolutionContext) {
 
-    private var currentConstraintSystem = components.session.inferenceComponents.createConstraintSystem()
+    private var currentConstraintSystem = components.session.inferenceComponents.createConstraintSystem(resolutionContext)
     val currentConstraintStorage: ConstraintStorage get() = currentConstraintSystem.currentStorage()
 
     private val unitType: ConeClassLikeType = components.session.builtinTypes.unitType.type

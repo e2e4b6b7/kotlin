@@ -9,6 +9,9 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSessionComponent
 import org.jetbrains.kotlin.fir.NoMutableState
 import org.jetbrains.kotlin.fir.languageVersionSettings
+import org.jetbrains.kotlin.fir.resolve.calls.ResolutionContext
+import org.jetbrains.kotlin.fir.resolve.dfa.PersistentFlow
+import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.LocalTypeContext
 import org.jetbrains.kotlin.fir.types.ConeInferenceContext
 import org.jetbrains.kotlin.fir.types.typeApproximator
 import org.jetbrains.kotlin.fir.types.typeContext
@@ -34,15 +37,22 @@ class InferenceComponents(val session: FirSession) : FirSessionComponent {
             resultTypeResolver, variableFixationFinder, ConeConstraintSystemUtilContext, session.languageVersionSettings
         )
 
-    val constraintSystemFactory = ConstraintSystemFactory()
+    fun constraintSystemFactory(flow: PersistentFlow? = null) = ConstraintSystemFactory(flow)
 
-    fun createConstraintSystem(): NewConstraintSystemImpl {
+    fun createConstraintSystem(flow: PersistentFlow? = null): NewConstraintSystemImpl {
+        val typeContext = flow?.let { LocalTypeContext(typeContext, it) } ?: typeContext
         return NewConstraintSystemImpl(injector, typeContext, session.languageVersionSettings)
     }
 
-    inner class ConstraintSystemFactory {
+    fun constraintSystemFactory(context: ResolutionContext) =
+        constraintSystemFactory(context.bodyResolveContext.dataFlowAnalyzerContext.graphBuilder.lastNodeOrNull?.flow)
+
+    fun createConstraintSystem(context: ResolutionContext): NewConstraintSystemImpl =
+        createConstraintSystem(context.bodyResolveContext.dataFlowAnalyzerContext.graphBuilder.lastNodeOrNull?.flow)
+
+    inner class ConstraintSystemFactory(val flow: PersistentFlow? = null) {
         fun createConstraintSystem(): NewConstraintSystemImpl {
-            return this@InferenceComponents.createConstraintSystem()
+            return this@InferenceComponents.createConstraintSystem(flow)
         }
     }
 }
