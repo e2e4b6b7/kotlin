@@ -28,6 +28,6 @@ open class FirBodyResolveTransformer(
     outerBodyResolveContext,
     firResolveContextCollector
 ) {
-    final override val expressionsTransformer = FirExpressionsResolveTransformer(this)
+    final override val expressionsTransformer = FirExpressionsResolveTransformerWithExpected(this)
     final override val declarationsTransformer = FirDeclarationsResolveTransformer(this)
 }

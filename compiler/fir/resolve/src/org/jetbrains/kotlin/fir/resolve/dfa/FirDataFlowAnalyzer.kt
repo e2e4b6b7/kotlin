@@ -78,7 +78,7 @@ abstract class FirDataFlowAnalyzer(
                 private val visibilityChecker = components.session.visibilityChecker
                 private val typeContext = components.session.typeContext
 
-                override fun receiverUpdated(symbol: FirBasedSymbol<*>, info: TypeStatement?) {
+                override fun receiverUpdated(symbol: FirBasedSymbol<*>, info: VariableTypeStatement?) {
                     val index = receiverStack.getReceiverIndex(symbol) ?: return
                     val originalType = receiverStack.getOriginalType(index)
                     receiverStack.replaceReceiverType(index, info.smartCastedType(typeContext, originalType))
@@ -116,7 +116,7 @@ abstract class FirDataFlowAnalyzer(
 
     protected abstract val logicSystem: LogicSystem
     protected abstract val receiverStack: Iterable<ImplicitReceiverValue<*>>
-    protected abstract fun receiverUpdated(symbol: FirBasedSymbol<*>, info: TypeStatement?)
+    protected abstract fun receiverUpdated(symbol: FirBasedSymbol<*>, info: VariableTypeStatement?)
 
     private val graphBuilder get() = context.graphBuilder
     private val variableStorage get() = context.variableStorage
@@ -260,7 +260,7 @@ abstract class FirDataFlowAnalyzer(
             for ((originalRealVariable, exactTypes) in smartCasts) {
                 val realVariable = variableStorage.getOrPut(originalRealVariable.identifier) { originalRealVariable }
                 val typeStatement = PersistentTypeStatement(realVariable, exactTypes.toPersistentSet())
-                flow.addTypeStatement(typeStatement)
+                flow.addVariableTypeStatement(typeStatement)
             }
         }
     }
@@ -343,50 +343,66 @@ abstract class FirDataFlowAnalyzer(
     }
 
     private fun addTypeOperatorStatements(flow: MutableFlow, typeOperatorCall: FirTypeOperatorCall) {
-        val type = typeOperatorCall.conversionTypeRef.coneType
-        val operandVariable = variableStorage.getOrCreateIfReal(flow, typeOperatorCall.argument) ?: return
+        val conversionType = typeOperatorCall.conversionTypeRef.coneType
+        val expressionType = typeOperatorCall.argument.resolvedType
+        val operandVariable = variableStorage.getOrCreateIfReal(flow, typeOperatorCall.argument)
         when (val operation = typeOperatorCall.operation) {
             FirOperation.IS, FirOperation.NOT_IS -> {
                 val isType = operation == FirOperation.IS
-                when (type) {
+                when (conversionType) {
                     // x is Nothing? <=> x == null
                     nullableNothing -> processEqNull(flow, typeOperatorCall, typeOperatorCall.argument, isType)
                     // x is Any <=> x != null
                     any -> processEqNull(flow, typeOperatorCall, typeOperatorCall.argument, !isType)
                     else -> {
                         val expressionVariable = variableStorage.createSynthetic(typeOperatorCall)
-                        if (operandVariable.isReal()) {
-                            flow.addImplication((expressionVariable eq isType) implies (operandVariable typeEq type))
+                        if (operandVariable != null) {
+                            if (operandVariable.isReal()) {
+                                operandVariable as RealVariable // bug in Kotlin compiler. Does not work with this cast
+                                flow.addImplication((expressionVariable eq isType) implies (operandVariable typeEq conversionType))
+                            }
+                            if (!conversionType.canBeNull) {
+                                // x is (T & Any) => x != null
+                                flow.addImplication((expressionVariable eq isType) implies (operandVariable notEq null))
+                            } else if (conversionType.isMarkedNullable) {
+                                // x !is T? => x != null
+                                flow.addImplication((expressionVariable eq !isType) implies (operandVariable notEq null))
+                            } // else probably a type parameter, so which implication is correct depends on instantiation
+                        } else {
+                            flow.addImplication((expressionVariable eq isType) implies (expressionType hasIntersectionWith conversionType))
                         }
-                        if (!type.canBeNull) {
-                            // x is (T & Any) => x != null
-                            flow.addImplication((expressionVariable eq isType) implies (operandVariable notEq null))
-                        } else if (type.isMarkedNullable) {
-                            // x !is T? => x != null
-                            flow.addImplication((expressionVariable eq !isType) implies (operandVariable notEq null))
-                        } // else probably a type parameter, so which implication is correct depends on instantiation
                     }
                 }
             }
 
             FirOperation.AS -> {
-                if (operandVariable.isReal()) {
-                    flow.addTypeStatement(operandVariable typeEq type)
-                }
-                if (!type.canBeNull) {
-                    flow.commitOperationStatement(operandVariable notEq null)
+                if (operandVariable != null) {
+                    if (operandVariable.isReal()) {
+                        operandVariable as RealVariable // bug in Kotlin compiler. Does not work with this cast
+                        flow.addVariableTypeStatement(operandVariable typeEq conversionType)
+                    }
+                    if (!conversionType.canBeNull) {
+                        flow.commitOperationStatement(operandVariable notEq null)
+                    } else {
+                        val expressionVariable = variableStorage.createSynthetic(typeOperatorCall)
+                        flow.addImplication((expressionVariable notEq null) implies (operandVariable notEq null))
+                        flow.addImplication((expressionVariable eq null) implies (operandVariable eq null))
+                    }
                 } else {
-                    val expressionVariable = variableStorage.createSynthetic(typeOperatorCall)
-                    flow.addImplication((expressionVariable notEq null) implies (operandVariable notEq null))
-                    flow.addImplication((expressionVariable eq null) implies (operandVariable eq null))
+                    flow.addTemporalValueTypeStatement(expressionType hasIntersectionWith conversionType)
                 }
             }
 
             FirOperation.SAFE_AS -> {
                 val expressionVariable = variableStorage.createSynthetic(typeOperatorCall)
-                flow.addImplication((expressionVariable notEq null) implies (operandVariable notEq null))
-                if (operandVariable.isReal()) {
-                    flow.addImplication((expressionVariable notEq null) implies (operandVariable typeEq type))
+                if (operandVariable != null) {
+                    flow.addImplication((expressionVariable notEq null) implies (operandVariable notEq null))
+                    if (operandVariable.isReal()) {
+                        operandVariable as RealVariable // bug in Kotlin compiler. Does not work with this cast
+                        flow.addImplication((expressionVariable notEq null) implies (operandVariable typeEq conversionType))
+                    }
+                } else {
+                    flow.addImplication((expressionVariable notEq null) implies (expressionType hasIntersectionWith conversionType))
                 }
             }
 
@@ -707,7 +723,7 @@ abstract class FirDataFlowAnalyzer(
                     atExit ?: return@forEach
                 }
             }) ?: return@forEach
-            flow.addTypeStatement(newStatement)
+            flow.addVariableTypeStatement(newStatement)
         }
     }
 
@@ -1050,7 +1066,7 @@ abstract class FirDataFlowAnalyzer(
         if (isAssignment) {
             // `propertyVariable` can be an alias to `initializerVariable`, in which case this will add
             // a redundant type statement which is fine...probably
-            flow.addTypeStatement(flow.unwrapVariable(propertyVariable) typeEq initializer.resolvedType)
+            flow.addVariableTypeStatement(flow.unwrapVariable(propertyVariable) typeEq initializer.resolvedType)
         }
     }
 
@@ -1408,20 +1424,28 @@ abstract class FirDataFlowAnalyzer(
         logicSystem.addImplication(this, statement)
     }
 
-    private fun MutableFlow.addTypeStatement(info: TypeStatement) {
-        val newStatement = logicSystem.addTypeStatement(this, info) ?: return
+    private fun MutableFlow.addVariableTypeStatement(info: VariableTypeStatement) {
+        val newStatement = logicSystem.addVariableTypeStatement(this, info) ?: return
         if (newStatement.variable.isThisReference && this === currentReceiverState) {
             receiverUpdated(newStatement.variable.identifier.symbol, newStatement)
         }
     }
 
-    private fun MutableFlow.addAllStatements(statements: TypeStatements) {
-        statements.values.forEach { addTypeStatement(it) }
+    private fun MutableFlow.addTemporalValueTypeStatement(info: TemporalValueTypeStatement) {
+        logicSystem.addTemporalValueTypeStatement(this, info)
     }
 
-    private fun MutableFlow.addAllConditionally(condition: OperationStatement, statements: TypeStatements) {
-        statements.values.forEach { addImplication(condition implies it) }
-    }
+    private fun MutableFlow.addAllStatements(statements: TypeStatements) =
+        statements.apply {
+            variableStatements.values.forEach { addVariableTypeStatement(it) }
+            temporalValueStatements.forEach { addTemporalValueTypeStatement(it) }
+        }
+
+    private fun MutableFlow.addAllConditionally(condition: OperationStatement, statements: TypeStatements) =
+        statements.apply {
+            variableStatements.values.forEach { addImplication(condition implies it) }
+            temporalValueStatements.forEach { addImplication(condition implies it) }
+        }
 
     private fun MutableFlow.addAllConditionally(condition: OperationStatement, from: Flow) {
         from.knownVariables.forEach {

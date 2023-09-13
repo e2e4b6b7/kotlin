@@ -5,15 +5,12 @@
 
 package org.jetbrains.kotlin.fir.resolve.dfa
 
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.PersistentMap
-import kotlinx.collections.immutable.PersistentSet
-import kotlinx.collections.immutable.persistentHashMapOf
+import kotlinx.collections.immutable.*
 
 abstract class Flow {
     abstract val knownVariables: Set<RealVariable>
     abstract fun unwrapVariable(variable: RealVariable): RealVariable
-    abstract fun getTypeStatement(variable: RealVariable): TypeStatement?
+    abstract fun getTypeStatement(variable: RealVariable): VariableTypeStatement?
 }
 
 class PersistentFlow internal constructor(
@@ -29,6 +26,7 @@ class PersistentFlow internal constructor(
     // in `directAliasMap`. `backwardsAliasMap` maps each representative to the rest of the set.
     internal val directAliasMap: PersistentMap<RealVariable, RealVariable>,
     private val backwardsAliasMap: PersistentMap<RealVariable, PersistentSet<RealVariable>>,
+    private val typeIntersections: PersistentSet<TemporalValueTypeStatement>,
 ) : Flow() {
     private val level: Int = if (previousFlow != null) previousFlow.level + 1 else 0
 
@@ -38,8 +36,11 @@ class PersistentFlow internal constructor(
     override fun unwrapVariable(variable: RealVariable): RealVariable =
         directAliasMap[variable] ?: variable
 
-    override fun getTypeStatement(variable: RealVariable): TypeStatement? =
+    override fun getTypeStatement(variable: RealVariable): VariableTypeStatement? =
         approvedTypeStatements[unwrapVariable(variable)]?.copy(variable = variable)
+
+    val allTypeIntersections: Set<TemporalValueTypeStatement> get() = typeIntersections
+    val allVariableTypeStatements: Map<RealVariable, VariableTypeStatement> get() = approvedTypeStatements
 
     fun lowestCommonAncestor(other: PersistentFlow): PersistentFlow? {
         var left = this
@@ -64,6 +65,7 @@ class PersistentFlow internal constructor(
         assignmentIndex.builder(),
         directAliasMap.builder(),
         backwardsAliasMap.builder(),
+        typeIntersections.builder(),
     )
 }
 
@@ -74,6 +76,7 @@ class MutableFlow internal constructor(
     internal val assignmentIndex: PersistentMap.Builder<RealVariable, Int>,
     internal val directAliasMap: PersistentMap.Builder<RealVariable, RealVariable>,
     internal val backwardsAliasMap: PersistentMap.Builder<RealVariable, PersistentSet<RealVariable>>,
+    internal val typeIntersections: PersistentSet.Builder<TemporalValueTypeStatement>,
 ) : Flow() {
     constructor() : this(
         null,
@@ -82,6 +85,7 @@ class MutableFlow internal constructor(
         emptyPersistentHashMapBuilder(),
         emptyPersistentHashMapBuilder(),
         emptyPersistentHashMapBuilder(),
+        emptyPersistentSetBuilder(),
     )
 
     override val knownVariables: Set<RealVariable>
@@ -90,7 +94,7 @@ class MutableFlow internal constructor(
     override fun unwrapVariable(variable: RealVariable): RealVariable =
         directAliasMap[variable] ?: variable
 
-    override fun getTypeStatement(variable: RealVariable): TypeStatement? =
+    override fun getTypeStatement(variable: RealVariable): VariableTypeStatement? =
         approvedTypeStatements[unwrapVariable(variable)]?.copy(variable = variable)
 
     fun freeze(): PersistentFlow = PersistentFlow(
@@ -100,8 +104,12 @@ class MutableFlow internal constructor(
         assignmentIndex.build(),
         directAliasMap.build(),
         backwardsAliasMap.build(),
+        typeIntersections.build(),
     )
 }
 
 private fun <K, V> emptyPersistentHashMapBuilder(): PersistentMap.Builder<K, V> =
     persistentHashMapOf<K, V>().builder()
+
+private fun <V> emptyPersistentSetBuilder(): PersistentSet.Builder<V> =
+    persistentSetOf<V>().builder()

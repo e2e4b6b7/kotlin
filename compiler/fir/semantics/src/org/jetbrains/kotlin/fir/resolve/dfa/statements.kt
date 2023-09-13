@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.fir.resolve.dfa
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 
 sealed class Statement {
-    abstract val variable: DataFlowVariable
+    abstract val variable: DataFlowVariable?
 }
 
 /*
@@ -25,7 +25,7 @@ data class OperationStatement(override val variable: DataFlowVariable, val opera
 }
 
 sealed class TypeStatement : Statement() {
-    abstract override val variable: RealVariable
+    abstract override val variable: RealVariable?
     abstract val exactType: Set<ConeKotlinType>
 
     val isEmpty: Boolean
@@ -37,6 +37,14 @@ sealed class TypeStatement : Statement() {
     override fun toString(): String {
         return "$variable: $exactType"
     }
+}
+
+sealed class VariableTypeStatement : TypeStatement() {
+    abstract override val variable: RealVariable
+}
+
+data class TemporalValueTypeStatement(val exactType: Set<ConeKotlinType>) : Statement() {
+    override val variable: RealVariable? get() = null
 }
 
 class Implication(
