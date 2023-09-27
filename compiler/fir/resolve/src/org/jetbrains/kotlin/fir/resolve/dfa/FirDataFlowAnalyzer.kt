@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutorByMap
 import org.jetbrains.kotlin.fir.resolve.substitution.chain
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformer
-import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.resolve.transformers.unwrapAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.scopes.getFunctions
 import org.jetbrains.kotlin.fir.scopes.impl.toConeType
@@ -503,7 +502,6 @@ abstract class FirDataFlowAnalyzer(
         // But seems like everything works and with current implementation
         val leftOperandVariable = variableStorage.getOrCreateIfReal(flow, leftOperand)
         val rightOperandVariable = variableStorage.getOrCreateIfReal(flow, rightOperand)
-        if (leftOperandVariable == null && rightOperandVariable == null) return
         val expressionVariable = variableStorage.createSynthetic(expression)
 
         if (leftIsNullable || rightIsNullable) {
@@ -514,8 +512,6 @@ abstract class FirDataFlowAnalyzer(
             }
         }
 
-        if (leftOperandVariable !is RealVariable && rightOperandVariable !is RealVariable) return
-
         if (operation == FirOperation.EQ || operation == FirOperation.NOT_EQ) {
             if (hasOverriddenEquals(leftOperandType)) return
         }
@@ -525,6 +521,9 @@ abstract class FirDataFlowAnalyzer(
         }
         if (rightOperandVariable is RealVariable) {
             flow.addImplication((expressionVariable eq isEq) implies (rightOperandVariable typeEq leftOperandType))
+        }
+        if (leftOperandVariable !is RealVariable && rightOperandVariable !is RealVariable) {
+            flow.addImplication((expressionVariable eq isEq) implies (leftOperandType hasIntersectionWith rightOperandType))
         }
     }
 
