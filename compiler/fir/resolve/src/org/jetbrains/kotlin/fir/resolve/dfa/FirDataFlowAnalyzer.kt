@@ -521,7 +521,6 @@ abstract class FirDataFlowAnalyzer(
             variable == null || logicSystem.isSameValueIn(lhsExitFlow, flow, variable)
         }
         val rightOperandVariable = variableStorage.getOrCreateIfReal(flow, rightOperand)
-        if (leftOperandVariable == null && rightOperandVariable == null) return
         val expressionVariable = variableStorage.createSynthetic(expression)
 
         if (leftIsNullable || rightIsNullable) {
@@ -532,8 +531,6 @@ abstract class FirDataFlowAnalyzer(
             }
         }
 
-        if (leftOperandVariable !is RealVariable && rightOperandVariable !is RealVariable) return
-
         if (operation == FirOperation.EQ || operation == FirOperation.NOT_EQ) {
             if (hasOverriddenEquals(leftOperandType)) return
         }
@@ -543,6 +540,9 @@ abstract class FirDataFlowAnalyzer(
         }
         if (rightOperandVariable is RealVariable) {
             flow.addImplication((expressionVariable eq isEq) implies (rightOperandVariable typeEq leftOperandType))
+        }
+        if (leftOperandVariable !is RealVariable && rightOperandVariable !is RealVariable) {
+            flow.addImplication((expressionVariable eq isEq) implies (leftOperandType hasIntersectionWith rightOperandType))
         }
     }
 
