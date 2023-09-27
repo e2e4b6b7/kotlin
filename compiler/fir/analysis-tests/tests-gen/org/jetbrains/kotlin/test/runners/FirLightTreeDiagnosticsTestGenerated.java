@@ -3492,6 +3492,70 @@ public class FirLightTreeDiagnosticsTestGenerated extends AbstractFirLightTreeDi
                     runTest("compiler/fir/analysis-tests/testData/resolve/inference/builderInference/ifInBuildMap.kt");
                 }
             }
+
+            @Nested
+            @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference")
+            @TestDataPath("$PROJECT_ROOT")
+            public class GadtInference {
+                @Test
+                public void testAllFilesPresentInGadtInference() throws Exception {
+                    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+                }
+
+                @Test
+                @TestMetadata("basicGadt.kt")
+                public void testBasicGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/basicGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("basicGenericsGADT.kt")
+                public void testBasicGenericsGADT() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/basicGenericsGADT.kt");
+                }
+
+                @Test
+                @TestMetadata("builderInferenceGadt.kt")
+                public void testBuilderInferenceGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/builderInferenceGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("conditionsGADT.kt")
+                public void testConditionsGADT() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/conditionsGADT.kt");
+                }
+
+                @Test
+                @TestMetadata("exprGadt.kt")
+                public void testExprGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/exprGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("logicGadt.kt")
+                public void testLogicGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/logicGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("possibleGadtImprovements.kt")
+                public void testPossibleGadtImprovements() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/possibleGadtImprovements.kt");
+                }
+
+                @Test
+                @TestMetadata("scala2Regression.kt")
+                public void testScala2Regression() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/scala2Regression.kt");
+                }
+
+                @Test
+                @TestMetadata("varianceGADT.kt")
+                public void testVarianceGADT() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/varianceGADT.kt");
+                }
+            }
         }
 
         @Nested

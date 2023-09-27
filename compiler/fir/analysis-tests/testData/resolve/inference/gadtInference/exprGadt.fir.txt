@@ -1,0 +1,41 @@
+fun <T> transform(v: T): T = TODO()
+fun <T> consume(v: T): Unit = TODO()
+fun <T> produce(): T = TODO()
+
+sealed class Expr<out T> {
+    open class IntConst(val value: Int) : Expr<Int>()
+    open class BoolConst(val value: Boolean) : Expr<Boolean>()
+    open class Add(val left: Expr<Int>, val right: Expr<Int>) : Expr<Int>()
+}
+
+fun <T> evaluate(expr: Expr<T>): T = when (expr) {
+    is Expr.IntConst -> expr.value
+    is Expr.BoolConst -> expr.value
+    is Expr.Add -> evaluate(expr.left) + evaluate(expr.right)
+}
+
+sealed class Expr2<out T> {
+    open class IntExpr : Expr2<Int>()
+    interface ConstExpr<out T> : Expr<T>()
+}
+
+fun <T> foo(x: Const<T>) {
+    when (x) {
+        is IntExpr -> {
+            consume<T>(produce<Int>())
+            consume<Int>(produce<T>()) // error
+        }
+    }
+}
+
+sealed class Expr3<out T> {
+    class IntVal<T : Int> : Expr3<T>()
+    class ActualInt : Expr3<Int>()
+    object ActualIntObject : Expr3<Int>()
+}
+
+fun <T> eval(e: Expr<T>): T = when(e) {
+    is IntVal -> 0 // error?
+    is ActualInt -> 0
+    ActualIntObject -> 0
+}

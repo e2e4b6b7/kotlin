@@ -1,0 +1,152 @@
+FILE: basicGenericsGADT.kt
+    public final fun <T> transform(v: R|T|): R|T| {
+        ^transform R|kotlin/TODO|()
+    }
+    public final fun <T> consume(v: R|T|): R|kotlin/Unit| {
+        ^consume R|kotlin/TODO|()
+    }
+    public final fun <T> produce(): R|T| {
+        ^produce R|kotlin/TODO|()
+    }
+    public abstract interface Box<T> : R|kotlin/Any| {
+    }
+    public abstract interface BoxInt : R|Box<kotlin/Int>| {
+    }
+    public abstract interface BoxString : R|Box<kotlin/String>| {
+    }
+    public abstract interface Box2<T, V> : R|kotlin/Any| {
+    }
+    public abstract interface NestedBox1<T> : R|Box<Box<Box2<kotlin/Int, T>>?>| {
+    }
+    public abstract interface NestedBox2<T> : R|Box<Box<Box2<T, kotlin/Int>>?>| {
+    }
+    public final fun <T> box basic test(v: R|Box<T>|): R|T| {
+        ^box basic test when (R|<local>/v|) {
+            ($subj$ is R|BoxInt|) ->  {
+                Int(1)
+            }
+            ($subj$ is R|BoxString|) ->  {
+                String(1)
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> box basic invalid test(v: R|Box<T>|): R|T| {
+        ^box basic invalid test when (R|<local>/v|) {
+            ($subj$ is R|BoxInt|) ->  {
+                Int(1)
+            }
+            ($subj$ is R|BoxString|) ->  {
+                String(1)
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> box basic test multiple return(v: R|Box<T>|): R|T| {
+        when (R|<local>/v|) {
+            ($subj$ is R|BoxInt|) ->  {
+                ^box basic test multiple return Int(1)
+            }
+            ($subj$ is R|BoxString|) ->  {
+                ^box basic test multiple return String(1)
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> box references test(v: R|Box<T>|): R|T| {
+        ^box references test when (R|<local>/v|) {
+            ($subj$ is R|BoxInt|) ->  {
+                R|/produce|<R|kotlin/Int|>()
+            }
+            ($subj$ is R|BoxString|) ->  {
+                R|/produce|<R|kotlin/String|>()
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> box consume test(v: R|Box<T>|): R|kotlin/Unit| {
+        ^box consume test when (R|<local>/v|) {
+            ($subj$ is R|BoxInt|) ->  {
+                R|/consume|<R|kotlin/Int|>(R|/produce|<R|T|>())
+            }
+            ($subj$ is R|BoxString|) ->  {
+                R|/consume|<R|kotlin/String|>(R|/produce|<R|T|>())
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> box without variable test(v: R|Box<T>|): R|T| {
+        ^box without variable test when (R|/transform|<R|Box<T>|>(R|<local>/v|)) {
+            ($subj$ is R|BoxInt|) ->  {
+                R|/consume|<R|kotlin/Int|>(R|/produce|<R|T|>())
+                Int(1)
+            }
+            ($subj$ is R|BoxString|) ->  {
+                R|/consume|<R|kotlin/String|>(R|/produce|<R|T|>())
+                String(1)
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T, V> nested arguments test(v: R|Box<Box<Box2<T, V>>?>|): R|Box2<T, V>| {
+        ^nested arguments test when (R|<local>/v|) {
+            ($subj$ is R|NestedBox1<*>|) ->  {
+                when (R|<local>/v|) {
+                    ($subj$ is R|NestedBox2<*>|) ->  {
+                        R|/consume|<R|Box2<kotlin/Int, kotlin/Int>|>(R|/produce|<R|Box2<T, V>|>())
+                        R|/produce|<R|Box2<kotlin/Int, kotlin/Int>|>()
+                    }
+                    else ->  {
+                        R|kotlin/TODO|()
+                    }
+                }
+
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T, V> nested type arguments if test(v: R|Box<Box<Box2<T, V>>?>|): R|Box2<T, V>| {
+        ^nested type arguments if test when () {
+            (R|<local>/v| is R|NestedBox1<*>|) && (R|<local>/v| is R|NestedBox2<*>|) ->  {
+                R|/consume|<R|Box2<kotlin/Int, kotlin/Int>|>(R|/produce|<R|Box2<T, V>|>())
+                R|/produce|<R|Box2<kotlin/Int, kotlin/Int>|>()
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T, V> nested type arguments without variable if test(v: R|Box<Box<Box2<T, V>>?>|): R|Box2<T, V>| {
+        ^nested type arguments without variable if test when () {
+            (R|<local>/v| is R|NestedBox1<*>|) && (R|/transform|<R|it(NestedBox1<*> & Box<Box<Box2<T, V>>?>)|>(R|<local>/v|) is R|NestedBox2<*>|) ->  {
+                R|/consume|<R|Box2<kotlin/Int, kotlin/Int>|>(R|/produce|<R|Box2<T, V>|>())
+                R|/produce|<R|Box2<kotlin/Int, kotlin/Int>|>()
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
