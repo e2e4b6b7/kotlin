@@ -1,0 +1,31 @@
+FILE: scala2Regression.kt
+    public open class C<out T> : R|kotlin/Any| {
+        public constructor<out T>(): R|C<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final data class D<S> : R|C<S>| {
+        public constructor<S>(s: R|S|): R|D<S>| {
+            super<R|C<S>|>()
+        }
+
+        public final var s: R|S| = R|<local>/s|
+            public get(): R|S|
+            public set(value: R|S|): R|kotlin/Unit|
+
+        public final operator fun component1(): R|S|
+
+        public final fun copy(s: R|S| = this@R|/D|.R|/D.s|): R|D<S>|
+
+    }
+    public final fun f(): R|kotlin/Unit| {
+        lval x: R|D<kotlin/String>| = R|/D.D|<R|kotlin/String|>(String( ))
+        lval y: R|C<kotlin/Any>| = R|<local>/x|
+        when (R|<local>/y|) {
+            ($subj$ is R|D<*>|) ->  {
+                R|<local>/y|.R|SubstitutionOverride</D.s: R|CapturedType(*)|>| = R|java/lang/Integer.Integer|(Int(1))
+            }
+        }
+
+    }

@@ -1,0 +1,25 @@
+fun <T> transform(v: T): T = TODO()
+fun <T> consume(v: T): Unit = TODO()
+fun <T> produce(): T = TODO()
+
+interface Eq<A, B>
+class ReflEq<T> : Eq<T, T>()
+
+fun <A, B> relate(eq: Eq<A, B>, a: A){
+    if (eq is ReflEq) {
+        consume<A>(produce<B>())
+        consume<B>(produce<A>())
+    }
+}
+
+fun <X, Y> foo(x: X, eq: Eq<Foo<X>, Foo<Y>>): Y = when (eq) {
+    is ReflEq<*> -> x
+}
+
+fun <X, Y> `foo out x`(x: X, eq: Eq<Foo<out X>, Foo<Y>>): Y = when (eq) {
+    is ReflEq<*> -> x
+}
+
+fun <X, Y> `foo out y`(x: X, eq: Eq<Foo<X>, Foo<out Y>>): Y = when (eq) {
+    is ReflEq<*> -> x
+}

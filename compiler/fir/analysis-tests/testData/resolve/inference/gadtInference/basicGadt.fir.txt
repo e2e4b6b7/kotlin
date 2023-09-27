@@ -1,0 +1,42 @@
+fun <T> transform(v: T): T = TODO()
+fun <T> consume(v: T): Unit = TODO()
+fun <T> produce(): T = TODO()
+
+inline fun <reified U> fo(u: U) {
+    if (produce<Int>() is U) {
+        consume<Int>(produce<U>())
+        consume<U>(produce<Int>())
+    }
+}
+
+fun <T> sound(t: T) {
+    if (t is Int) {
+        consume<T>(produce<Int>())
+        consume<Int>(produce<T>()) // error
+    }
+}
+
+fun <T> sound(t: T) {
+    if (t is List<*>) {
+        consume<T>(produce<List<*>>()) // error
+        consume<List<*>>(produce<T>()) // error
+    }
+}
+
+typealias FooInt<X> = Pair<Int, Int>
+
+fun <X, Y> foo2(x: X, eq: EQ<FooInt<X>, FooInt<Y>>): Y = when (eq) {
+    is Refl<*> -> x
+}
+
+interface Invariant<T>(val value: T)
+
+fun <T> unsound1(invariant: Invariant<T>) {
+    if (invariant.value is Int) {
+        consume<T>(produce<Int>()) // todo: error in scala, analyze
+        consume<T>(produce<Any>()) // error
+        consume<Int>(produce<T>()) // error
+        consume<Invariant<Int>>(produce<Invariant<T>>()) // error
+        consume<Invariant<T>>(produce<Invariant<Int>>()) // error
+    }
+}
