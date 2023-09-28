@@ -127,6 +127,9 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext, ConeTypeCo
 
     override fun KotlinTypeMarker.canHaveUndefinedNullability(): Boolean {
         require(this is ConeKotlinType)
+        if (this is ConeIntersectionType) {
+            return this.intersectedTypes.all { it.canHaveUndefinedNullability() }
+        }
         return this is ConeCapturedType || this is ConeTypeVariableType
                 || this is ConeTypeParameterType
     }

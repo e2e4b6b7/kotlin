@@ -19,12 +19,22 @@ fun <X, Y> foo(x: X, eq: Eq<Foo<X>, Foo<Y>>): Y = when (eq) {
     else -> TODO()
 }
 
-fun <X, Y> `foo out x`(x: X, eq: Eq<Foo<out X>, Foo<Y>>): Y = <!RETURN_TYPE_MISMATCH!>when (eq) {
+fun <X, Y> `foo false out x`(x: X, eq: Eq<Foo<out X>, Foo<Y>>): Y = when (eq) {
+    is ReflEq<*> -> x
+    else -> TODO()
+}
+
+fun <X, Y> `foo false out y`(x: X, eq: Eq<Foo<X>, Foo<out Y>>): Y = when (eq) {
+    is ReflEq<*> -> x
+    else -> TODO()
+}
+
+fun <X, Y> `foo out x`(x: X, eq: Eq<out Foo<out X>, Foo<Y>>): Y = <!RETURN_TYPE_MISMATCH!>when (eq) {
     is ReflEq<*> -> x
     else -> TODO()
 }<!>
 
-fun <X, Y> `foo out y`(x: X, eq: Eq<Foo<X>, Foo<out Y>>): Y = when (eq) {
+fun <X, Y> `foo out y`(x: X, eq: Eq<Foo<X>, out Foo<out Y>>): Y = when (eq) {
     is ReflEq<*> -> x
     else -> TODO()
 }

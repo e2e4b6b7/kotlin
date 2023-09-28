@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.types.TypeCheckerState
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.types.model.TypeVariance.*
 import org.jetbrains.kotlin.utils.addIfNotNull
-import java.util.LinkedList
+import org.jetbrains.kotlin.utils.keysToMap
 import kotlin.reflect.KClass
 
 data class SimpleInferredConstraint(val supertype: KotlinTypeMarker, val subtype: KotlinTypeMarker)
@@ -34,41 +34,7 @@ fun inferredConstraints(flow: PersistentFlow, typeContext: ConeTypeContext): Lis
     val intersections = collectInferredIntersections(flow)
     val typeVariables = mutableSetOf<ConeTypeVariableType>()
     val constraints = intersections.flatMap { inferComplexConstraints(it, typeVariables) }
-    val simpleConstraints = transformToSimpleConstraints(constraints)
-    return constraintsClosure(simpleConstraints, typeVariables.toList())
-}
-
-private fun constraintsClosure(
-    constraints: List<SimpleInferredConstraint>,
-    variables: List<ConeTypeVariableType>,
-): List<SimpleInferredConstraint> {
-    val queue = LinkedList(constraints)
-    val visited = mutableSetOf<SimpleInferredConstraint>()
-    val simpleConstraints = mutableListOf<SimpleInferredConstraint>()
-
-    while (queue.isNotEmpty()) {
-        val constraint = queue.removeFirst()
-        if (constraint in visited) continue
-        visited.add(constraint)
-
-        if (constraint.subtype in variables) {
-            queue
-                .filter { it.supertype == constraint.subtype }
-                .map { SimpleInferredConstraint(constraint.supertype, it.subtype) }
-                .forEach { queue.add(it) }
-        }
-        if (constraint.supertype in variables) {
-            queue
-                .filter { it.subtype == constraint.supertype }
-                .map { SimpleInferredConstraint(it.supertype, constraint.subtype) }
-                .forEach { queue.add(it) }
-        }
-        if (constraint.supertype !in variables || constraint.subtype !in variables) {
-            simpleConstraints.add(constraint)
-        }
-    }
-
-    return simpleConstraints
+    return transformToSimpleConstraints(constraints, typeVariables)
 }
 
 private fun collectInferredIntersections(flow: PersistentFlow): List<Iterable<ConeKotlinType>> = buildList {
@@ -116,7 +82,7 @@ private fun ConeTypeContext.inferComplexConstraints(aType: SimpleTypeMarker, bTy
                     val aVariance = if (aConst) INV else effectiveVariance(param.getVariance(), aArg.getVariance()) ?: TODO()
                     val bVariance = if (bConst) INV else effectiveVariance(param.getVariance(), bArg.getVariance()) ?: TODO()
 
-                    getArgumentsRelation(aVariance, bVariance)
+                    getArgumentsRelationForIntersection(aVariance, bVariance)
                 }, add = this@buildList::add
             )
         }
@@ -124,13 +90,22 @@ private fun ConeTypeContext.inferComplexConstraints(aType: SimpleTypeMarker, bTy
 
 private inline fun ConeTypeContext.marked(
     typePrepared: SimpleTypeMarker,
-    crossinline newVariable: () -> ConeTypeVariableType,
+    crossinline newVariable: () -> ConeTypeProjection,
 ): SimpleTypeMarker {
     require(typePrepared is ConeKotlinType)
     return if (typePrepared.argumentsCount() == 0) typePrepared
     else typePrepared.withArguments { argument ->
         argument.type?.let { type -> argument.replaceType(type.withChildParameterAttribute) as ConeTypeProjection }
             ?: newVariable()
+    }
+}
+
+private fun ConeTypeContext.forwardMark(typePrepared: SimpleTypeMarker): SimpleTypeMarker {
+    require(typePrepared is ConeKotlinType)
+    return if (typePrepared.argumentsCount() == 0 || !typePrepared.attributes.contains(ChildParameter::class)) typePrepared
+    else typePrepared.withArguments { argument ->
+        argument.type?.let { type -> argument.replaceType(type.withChildParameterAttribute) as ConeTypeProjection }
+            ?: argument
     }
 }
 
@@ -207,34 +182,95 @@ private fun ConeTypeContext.isConstArgument(arg: TypeArgumentMarker): Boolean {
     return !(arg.getType() as ConeKotlinType).contains { it.attributes.contains(ChildParameter::class) }
 }
 
-private fun getArgumentsRelation(aVariance: TypeVariance, bVariance: TypeVariance): TypesRelation? = when (aVariance) {
-    INV -> when (bVariance) {
-        INV -> EQUAL
-        IN -> SUPERTYPE
-        OUT -> SUBTYPE
+private fun getArgumentsRelationForIntersection(aVariance: TypeVariance, bVariance: TypeVariance): TypesRelation? =
+    when (aVariance) {
+        INV -> when (bVariance) {
+            INV -> EQUAL
+            IN -> SUPERTYPE
+            OUT -> SUBTYPE
+        }
+        IN -> when (bVariance) {
+            INV -> SUBTYPE
+            IN -> null
+            OUT -> SUBTYPE
+        }
+        OUT -> when (bVariance) {
+            INV -> SUPERTYPE
+            IN -> SUPERTYPE
+            OUT -> null
+        }
     }
-    IN -> when (bVariance) {
-        INV -> SUBTYPE
-        IN -> null
-        OUT -> SUBTYPE
+
+private fun getArgumentsRelationForSubtyping(
+    typesRelation: TypesRelation,
+    aVariance: TypeVariance,
+    bVariance: TypeVariance,
+): TypesRelation? =
+    when (aVariance) {
+        INV -> when (bVariance) {
+            INV -> EQUAL
+            IN -> typesRelation.inverted
+            OUT -> typesRelation
+        }
+        IN -> when (bVariance) {
+            INV -> typesRelation.inverted
+            IN -> typesRelation.inverted
+            OUT -> null
+        }
+        OUT -> when (bVariance) {
+            INV -> typesRelation
+            IN -> null
+            OUT -> typesRelation
+        }
     }
-    OUT -> when (bVariance) {
-        INV -> SUPERTYPE
-        IN -> SUPERTYPE
-        OUT -> null
+
+private class VariableBounds {
+    // todo: use set & do not process duplicates
+    // todo: if we found first equal constraint, we can add only constraints to that type
+    private val lowerBounds = mutableListOf<KotlinTypeMarker>()
+    private val upperBounds = mutableListOf<KotlinTypeMarker>()
+
+    fun addNewBound(
+        relation: TypesRelation,
+        type: KotlinTypeMarker,
+    ): List<ComplexInferredConstraint> {
+        val newConstraints = mutableListOf<ComplexInferredConstraint>()
+
+        when (relation) {
+            EQUAL -> {
+                newConstraints.addAll(lowerBounds.map { ComplexInferredConstraint(SUPERTYPE, type, it) })
+                newConstraints.addAll(upperBounds.map { ComplexInferredConstraint(SUBTYPE, type, it) })
+                lowerBounds.add(type)
+                upperBounds.add(type)
+            }
+            SUBTYPE -> {
+                newConstraints.addAll(upperBounds.map { ComplexInferredConstraint(SUBTYPE, type, it) })
+                lowerBounds.add(type)
+            }
+            SUPERTYPE -> {
+                newConstraints.addAll(lowerBounds.map { ComplexInferredConstraint(SUPERTYPE, type, it) })
+                upperBounds.add(type)
+            }
+        }
+
+        return newConstraints
     }
 }
 
-private fun ConeTypeContext.transformToSimpleConstraints(constraints: List<ComplexInferredConstraint>): List<SimpleInferredConstraint> {
+private fun ConeTypeContext.transformToSimpleConstraints(
+    constraints: List<ComplexInferredConstraint>,
+    typeVariables: MutableSet<ConeTypeVariableType>,
+): List<SimpleInferredConstraint> {
     val queue = constraints.toMutableList()
     val visited = mutableSetOf<ComplexInferredConstraint>()
     val simpleConstraints = mutableListOf<SimpleInferredConstraint>()
+    val variablesBounds = typeVariables.keysToMap { VariableBounds() }
 
     while (queue.isNotEmpty()) {
         val constraint = queue.removeLast()
         if (constraint in visited) continue
         visited.add(constraint)
-        val (newConstraints, newSimpleConstraints) = inferConstraintsFromInferredConstraints(constraint)
+        val (newConstraints, newSimpleConstraints) = inferConstraintsFromInferredConstraints(constraint, variablesBounds)
         queue.addAll(newConstraints)
         simpleConstraints.addAll(newSimpleConstraints)
     }
@@ -242,17 +278,30 @@ private fun ConeTypeContext.transformToSimpleConstraints(constraints: List<Compl
     return simpleConstraints
 }
 
-private fun ConeTypeContext.inferConstraintsFromInferredConstraints(constraint: ComplexInferredConstraint): Pair<List<ComplexInferredConstraint>, List<SimpleInferredConstraint>> {
+private fun ConeTypeContext.inferConstraintsFromInferredConstraints(
+    constraint: ComplexInferredConstraint,
+    variablesBounds: Map<ConeTypeVariableType, VariableBounds>,
+): Pair<List<ComplexInferredConstraint>, List<SimpleInferredConstraint>> {
     val (relation, aType, bType) = constraint
 
     require(aType is ConeKotlinType)
     require(bType is ConeKotlinType)
 
-    val complexInferredConstraint = mutableListOf<ComplexInferredConstraint>()
-    val simpleInferredConstraint = mutableListOf<SimpleInferredConstraint>()
+    val complexInferredConstraints = mutableListOf<ComplexInferredConstraint>()
+    val simpleInferredConstraints = mutableListOf<SimpleInferredConstraint>()
+
+    if (aType in variablesBounds || bType in variablesBounds) {
+        variablesBounds[aType]?.let { bounds ->
+            complexInferredConstraints.addAll(bounds.addNewBound(relation.inverted, bType))
+        }
+        variablesBounds[bType]?.let { bounds ->
+            complexInferredConstraints.addAll(bounds.addNewBound(relation, aType))
+        }
+        return complexInferredConstraints to simpleInferredConstraints
+    }
 
     if (bType.typeConstructor().isTypeParameterTypeConstructor() || aType.typeConstructor().isTypeParameterTypeConstructor()) {
-        with(simpleInferredConstraint) {
+        with(simpleInferredConstraints) {
             when (relation) {
                 EQUAL -> {
                     add(SimpleInferredConstraint(aType, bType))
@@ -264,23 +313,21 @@ private fun ConeTypeContext.inferConstraintsFromInferredConstraints(constraint: 
         }
     }
 
-    collectAllCommonSupertypes(prepared(aType), prepared(bType)).forEach { (a, b) ->
+    collectAllCommonSupertypes(forwardMark(prepared(aType)), forwardMark(prepared(bType))).forEach { (a, b) ->
         inferComplexConstraintsFromCommonSupertype(
             a, b, getRelation = { param, aArg, bArg ->
                 val aConst = isConstArgument(aArg)
                 val bConst = isConstArgument(bArg)
 
-                if (aConst && bConst) EQUAL
-                else when (param.getVariance()) {
-                    INV -> EQUAL
-                    IN -> relation.inverted
-                    OUT -> relation
-                }
-            }, add = complexInferredConstraint::add
+                val aVariance = if (aConst) INV else effectiveVariance(param.getVariance(), aArg.getVariance()) ?: TODO()
+                val bVariance = if (bConst) INV else effectiveVariance(param.getVariance(), bArg.getVariance()) ?: TODO()
+
+                getArgumentsRelationForSubtyping(relation, aVariance, bVariance) ?: TODO("unsat")
+            }, add = complexInferredConstraints::add
         )
     }
 
-    return complexInferredConstraint to simpleInferredConstraint
+    return complexInferredConstraints to simpleInferredConstraints
 }
 
 private val TypesRelation.inverted: TypesRelation
