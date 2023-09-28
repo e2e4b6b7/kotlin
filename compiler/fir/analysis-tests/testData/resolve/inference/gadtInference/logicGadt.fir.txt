@@ -1,25 +1,135 @@
-fun <T> transform(v: T): T = TODO()
-fun <T> consume(v: T): Unit = TODO()
-fun <T> produce(): T = TODO()
-
-interface Eq<A, B>
-class ReflEq<T> : Eq<T, T>()
-
-fun <A, B> relate(eq: Eq<A, B>, a: A){
-    if (eq is ReflEq) {
-        consume<A>(produce<B>())
-        consume<B>(produce<A>())
+FILE: logicGadt.kt
+    public final fun <T> transform(v: R|T|): R|T| {
+        ^transform R|kotlin/TODO|()
     }
-}
+    public final fun <T> consume(v: R|T|): R|kotlin/Unit| {
+        ^consume R|kotlin/TODO|()
+    }
+    public final fun <T> produce(): R|T| {
+        ^produce R|kotlin/TODO|()
+    }
+    public abstract interface Eq<A, B> : R|kotlin/Any| {
+    }
+    public final class ReflEq<T> : R|Eq<T, T>| {
+        public constructor<T>(): R|ReflEq<T>| {
+            super<R|kotlin/Any|>()
+        }
 
-fun <X, Y> foo(x: X, eq: Eq<Foo<X>, Foo<Y>>): Y = when (eq) {
-    is ReflEq<*> -> x
-}
+    }
+    public final fun <A, B> relate eq(eq: R|Eq<A, B>|): R|kotlin/Unit| {
+        when () {
+            (R|<local>/eq| is R|ReflEq<*>|) ->  {
+                R|/consume|<R|A|>(R|/produce|<R|B|>())
+                R|/consume|<R|B|>(R|/produce|<R|A|>())
+            }
+        }
 
-fun <X, Y> `foo out x`(x: X, eq: Eq<Foo<out X>, Foo<Y>>): Y = when (eq) {
-    is ReflEq<*> -> x
-}
+    }
+    public final class Foo<T> : R|kotlin/Any| {
+        public constructor<T>(): R|Foo<T>| {
+            super<R|kotlin/Any|>()
+        }
 
-fun <X, Y> `foo out y`(x: X, eq: Eq<Foo<X>, Foo<out Y>>): Y = when (eq) {
-    is ReflEq<*> -> x
-}
+    }
+    public final fun <X, Y> foo(x: R|X|, eq: R|Eq<Foo<X>, Foo<Y>>|): R|Y| {
+        ^foo when (R|<local>/eq|) {
+            ($subj$ is R|ReflEq<*>|) ->  {
+                R|<local>/x|
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <X, Y> foo false out x(x: R|X|, eq: R|Eq<Foo<out X>, Foo<Y>>|): R|Y| {
+        ^foo false out x when (R|<local>/eq|) {
+            ($subj$ is R|ReflEq<*>|) ->  {
+                R|<local>/x|
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <X, Y> foo false out y(x: R|X|, eq: R|Eq<Foo<X>, Foo<out Y>>|): R|Y| {
+        ^foo false out y when (R|<local>/eq|) {
+            ($subj$ is R|ReflEq<*>|) ->  {
+                R|<local>/x|
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <X, Y> foo out x(x: R|X|, eq: R|Eq<out Foo<out X>, Foo<Y>>|): R|Y| {
+        ^foo out x when (R|<local>/eq|) {
+            ($subj$ is R|ReflEq<*>|) ->  {
+                R|<local>/x|
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <X, Y> foo out y(x: R|X|, eq: R|Eq<Foo<X>, out Foo<out Y>>|): R|Y| {
+        ^foo out y when (R|<local>/eq|) {
+            ($subj$ is R|ReflEq<*>|) ->  {
+                R|<local>/x|
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final typealias FooInt<X> = R|kotlin/Int|
+    public final fun <X, Y> foo2(x: R|X|, eq: R|Eq<FooInt<X>, FooInt<Y>>|): R|Y| {
+        ^foo2 when (R|<local>/eq|) {
+            ($subj$ is R|ReflEq<*>|) ->  {
+                R|<local>/x|
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public abstract interface Sub<A, out B> : R|kotlin/Any| {
+    }
+    public final class ReflSub<T> : R|Sub<T, T>| {
+        public constructor<T>(): R|ReflSub<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final fun <A, B> relate sub(sub: R|Sub<A, B>|): R|kotlin/Unit| {
+        when () {
+            (R|<local>/sub| is R|ReflSub<*>|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|A|>(R|/produce|<R|B|>())
+                R|/consume|<R|B|>(R|/produce|<R|A|>())
+            }
+        }
+
+    }
+    public final fun <A, B> relate sub with temporal value(sub: R|Sub<A, B>|): R|kotlin/Unit| {
+        when () {
+            (R|/transform|<R|Sub<A, B>|>(R|<local>/sub|) is R|ReflSub<*>|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|A|>(R|/produce|<R|B|>())
+                R|/consume|<R|B|>(R|/produce|<R|A|>())
+            }
+        }
+
+    }
+    public final fun <A, B, C, D> complex relation(eq: R|Eq<A, B>|, sub: R|Sub<B, C>|, eq2: R|Eq<C, D>|): R|kotlin/Unit| {
+        when () {
+            (R|<local>/eq| is R|ReflEq<*>|) && (R|<local>/sub| is R|ReflSub<*>|) && (R|<local>/eq2| is R|ReflEq<*>|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|A|>(R|/produce|<R|D|>())
+                R|/consume|<R|D|>(R|/produce|<R|A|>())
+            }
+        }
+
+    }
