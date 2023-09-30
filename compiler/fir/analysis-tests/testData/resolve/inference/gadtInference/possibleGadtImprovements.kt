@@ -53,3 +53,21 @@ fun <T> `impossible inheritance`(ct: Contra<T>, t: T) {
         }
     }
 }
+
+interface Box<T>
+interface BoxInt : Box<Int>
+interface BoxString : Box<String>
+
+fun <T> `box basic test`(v: Box<T>): T {
+    val `annotated`: T = when (v) {
+        is BoxInt -> 1
+        is BoxString -> "1"
+        else -> TODO()
+    }
+    val `not annotated` = when (v) {
+        is BoxInt -> 1
+        is BoxString -> "1"
+        else -> TODO()
+    }
+}
+

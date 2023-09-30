@@ -38,4 +38,3 @@ fun <T> `gadt - builder inference consume after`() = buildList {
     }
     consume<Inv<T>>(this[1])
 }
-
