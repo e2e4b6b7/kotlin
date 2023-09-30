@@ -16,18 +16,27 @@ FILE: logicGadt.kt
         }
 
     }
-    public final fun <A, B> relate eq(eq: R|Eq<A, B>|): R|kotlin/Unit| {
-        when () {
-            (R|<local>/eq| is R|ReflEq<*>|) ->  {
-                R|/consume|<R|A|>(R|/produce|<R|B|>())
-                R|/consume|<R|B|>(R|/produce|<R|A|>())
-            }
+    public abstract interface Sub<A, out B> : R|kotlin/Any| {
+    }
+    public final class ReflSub<T> : R|Sub<T, T>| {
+        public constructor<T>(): R|ReflSub<T>| {
+            super<R|kotlin/Any|>()
         }
 
     }
     public final class Foo<T> : R|kotlin/Any| {
         public constructor<T>(): R|Foo<T>| {
             super<R|kotlin/Any|>()
+        }
+
+    }
+    public final typealias FooInt<X> = R|kotlin/Int|
+    public final fun <A, B> relate eq(eq: R|Eq<A, B>|): R|kotlin/Unit| {
+        when () {
+            (R|<local>/eq| is R|ReflEq<*>|) ->  {
+                R|/consume|<R|A|>(R|/produce|<R|B|>())
+                R|/consume|<R|B|>(R|/produce|<R|A|>())
+            }
         }
 
     }
@@ -86,7 +95,6 @@ FILE: logicGadt.kt
         }
 
     }
-    public final typealias FooInt<X> = R|kotlin/Int|
     public final fun <X, Y> foo2(x: R|X|, eq: R|Eq<FooInt<X>, FooInt<Y>>|): R|Y| {
         ^foo2 when (R|<local>/eq|) {
             ($subj$ is R|ReflEq<*>|) ->  {
@@ -95,14 +103,6 @@ FILE: logicGadt.kt
             else ->  {
                 R|kotlin/TODO|()
             }
-        }
-
-    }
-    public abstract interface Sub<A, out B> : R|kotlin/Any| {
-    }
-    public final class ReflSub<T> : R|Sub<T, T>| {
-        public constructor<T>(): R|ReflSub<T>| {
-            super<R|kotlin/Any|>()
         }
 
     }

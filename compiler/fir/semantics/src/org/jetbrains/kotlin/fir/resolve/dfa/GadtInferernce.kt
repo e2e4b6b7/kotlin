@@ -5,15 +5,12 @@
 
 package org.jetbrains.kotlin.fir.resolve.dfa
 
-import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirClassLikeDeclaration
 import org.jetbrains.kotlin.fir.resolve.dfa.TypesRelation.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.types.AbstractTypeChecker.effectiveVariance
 import org.jetbrains.kotlin.types.TypeCheckerState
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.types.model.TypeVariance.*
-import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.keysToMap
 import kotlin.reflect.KClass
 
@@ -38,15 +35,11 @@ fun inferredConstraints(flow: PersistentFlow, typeContext: ConeTypeContext): Lis
 }
 
 private fun collectInferredIntersections(flow: PersistentFlow): List<Iterable<ConeKotlinType>> = buildList {
-    flow.allVariableTypeStatements.forEach { (variable, typeStatement) ->
-        val types = typeStatement.exactType.toMutableList()
-        when (val declaration = variable.identifier.symbol.fir) {
-            is FirCallableDeclaration -> declaration.returnTypeRef.coneTypeOrNull?.let { types.add(it) }
-            is FirClassLikeDeclaration -> {} // todo
-            else -> TODO()
-        }
-        addIfNotNull(types)
-    }
+//    We can use all intersections for variables from smartcasts instead of collecting them independently
+//    To achieve this we have to add original variable type in the list of smartcasted type
+//    flow.allVariableTypeStatements.forEach { (_, typeStatement) ->
+//        addIfNotNull(typeStatement.exactType)
+//    }
     flow.allTypeIntersections.forEach { types ->
         add(types.exactType)
     }
@@ -73,6 +66,25 @@ private fun ConeTypeContext.inferComplexConstraints(
 
 private fun ConeTypeContext.inferComplexConstraints(aType: SimpleTypeMarker, bType: SimpleTypeMarker): List<ComplexInferredConstraint> =
     buildList {
+        fun haveNoSubtypes(type: SimpleTypeMarker): Boolean =
+            type.typeConstructor().isFinalClassOrEnumEntryOrAnnotationClassConstructor() &&
+                    type.getArguments().all { it.getVariance() == INV }
+
+        val aFinal = haveNoSubtypes(aType)
+        val bFinal = haveNoSubtypes(bType)
+
+        if (aFinal && bFinal) {
+            add(ComplexInferredConstraint(EQUAL, aType, bType))
+            return@buildList
+        }
+        if (aFinal) {
+            add(ComplexInferredConstraint(SUBTYPE, aType, bType))
+            return@buildList
+        }
+        if (bFinal) {
+            add(ComplexInferredConstraint(SUPERTYPE, aType, bType))
+            return@buildList
+        }
         collectAllCommonSupertypes(aType, bType).forEach { (a, b) ->
             inferComplexConstraintsFromCommonSupertype(
                 a, b, getRelation = { param, aArg, bArg ->

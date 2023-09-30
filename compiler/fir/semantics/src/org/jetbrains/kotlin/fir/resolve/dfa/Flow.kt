@@ -11,6 +11,7 @@ abstract class Flow {
     abstract val knownVariables: Set<RealVariable>
     abstract fun unwrapVariable(variable: RealVariable): RealVariable
     abstract fun getTypeStatement(variable: RealVariable): VariableTypeStatement?
+    abstract val allTypeIntersections: Set<TemporalValueTypeStatement>
 }
 
 class PersistentFlow internal constructor(
@@ -39,8 +40,7 @@ class PersistentFlow internal constructor(
     override fun getTypeStatement(variable: RealVariable): VariableTypeStatement? =
         approvedTypeStatements[unwrapVariable(variable)]?.copy(variable = variable)
 
-    val allTypeIntersections: Set<TemporalValueTypeStatement> get() = typeIntersections
-    val allVariableTypeStatements: Map<RealVariable, VariableTypeStatement> get() = approvedTypeStatements
+    override val allTypeIntersections: Set<TemporalValueTypeStatement> get() = typeIntersections
 
     fun lowestCommonAncestor(other: PersistentFlow): PersistentFlow? {
         var left = this
@@ -96,6 +96,8 @@ class MutableFlow internal constructor(
 
     override fun getTypeStatement(variable: RealVariable): VariableTypeStatement? =
         approvedTypeStatements[unwrapVariable(variable)]?.copy(variable = variable)
+
+    override val allTypeIntersections: Set<TemporalValueTypeStatement> get() = typeIntersections
 
     fun freeze(): PersistentFlow = PersistentFlow(
         previousFlow,

@@ -368,9 +368,8 @@ abstract class FirDataFlowAnalyzer(
                                 // x !is T? => x != null
                                 flow.addImplication((expressionVariable eq !isType) implies (operandVariable notEq null))
                             } // else probably a type parameter, so which implication is correct depends on instantiation
-                        } else {
-                            flow.addImplication((expressionVariable eq isType) implies (expressionType hasIntersectionWith conversionType))
                         }
+                        flow.addImplication((expressionVariable eq isType) implies (expressionType hasIntersectionWith conversionType))
                     }
                 }
             }
@@ -388,9 +387,8 @@ abstract class FirDataFlowAnalyzer(
                         flow.addImplication((expressionVariable notEq null) implies (operandVariable notEq null))
                         flow.addImplication((expressionVariable eq null) implies (operandVariable eq null))
                     }
-                } else {
-                    flow.addTemporalValueTypeStatement(expressionType hasIntersectionWith conversionType)
                 }
+                flow.addTemporalValueTypeStatement(expressionType hasIntersectionWith conversionType)
             }
 
             FirOperation.SAFE_AS -> {
@@ -401,9 +399,8 @@ abstract class FirDataFlowAnalyzer(
                         operandVariable as RealVariable // bug in Kotlin compiler. Does not work with this cast
                         flow.addImplication((expressionVariable notEq null) implies (operandVariable typeEq conversionType))
                     }
-                } else {
-                    flow.addImplication((expressionVariable notEq null) implies (expressionType hasIntersectionWith conversionType))
                 }
+                flow.addImplication((expressionVariable notEq null) implies (expressionType hasIntersectionWith conversionType))
             }
 
             else -> throw IllegalStateException()
@@ -535,14 +532,13 @@ abstract class FirDataFlowAnalyzer(
             if (hasOverriddenEquals(leftOperandType)) return
         }
 
+        flow.addImplication((expressionVariable eq isEq) implies (leftOperandType hasIntersectionWith rightOperandType))
+
         if (leftOperandVariable is RealVariable) {
             flow.addImplication((expressionVariable eq isEq) implies (leftOperandVariable typeEq rightOperandType))
         }
         if (rightOperandVariable is RealVariable) {
             flow.addImplication((expressionVariable eq isEq) implies (rightOperandVariable typeEq leftOperandType))
-        }
-        if (leftOperandVariable !is RealVariable && rightOperandVariable !is RealVariable) {
-            flow.addImplication((expressionVariable eq isEq) implies (leftOperandType hasIntersectionWith rightOperandType))
         }
     }
 
@@ -1452,6 +1448,7 @@ abstract class FirDataFlowAnalyzer(
             // Only add the statement if this variable is not aliasing another in `this` (but it could be aliasing in `from`).
             if (unwrapVariable(it) == it) addImplication(condition implies (from.getTypeStatement(it) ?: return@forEach))
         }
+        from.allTypeIntersections.forEach { addImplication(condition implies it) }
     }
 
     private fun MutableFlow.commitOperationStatement(statement: OperationStatement) {

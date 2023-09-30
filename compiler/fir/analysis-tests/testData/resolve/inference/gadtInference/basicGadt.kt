@@ -34,12 +34,12 @@ inline fun <reified U> `basic reified open class`(u: U) {
 
 class Invariant<T>(val value: T)
 
-fun <T> unsound1(invariant: Invariant<T>) {
+fun <V> unsound1(invariant: Invariant<V>) {
     if (invariant.value is Int) {
-        consume<T>(produce<Int>()) // todo: error in scala, analyze
-        consume<T>(<!ARGUMENT_TYPE_MISMATCH!>produce<Any>()<!>)
-        consume<Int>(<!ARGUMENT_TYPE_MISMATCH!>produce<T>()<!>)
-        consume<Invariant<Int>>(<!ARGUMENT_TYPE_MISMATCH!>produce<Invariant<T>>()<!>)
-        consume<Invariant<T>>(<!ARGUMENT_TYPE_MISMATCH!>produce<Invariant<Int>>()<!>)
+        consume<V>(produce<Int>())
+        consume<V>(<!ARGUMENT_TYPE_MISMATCH!>produce<Any>()<!>)
+        consume<Int>(<!ARGUMENT_TYPE_MISMATCH!>produce<V>()<!>)
+        consume<Invariant<Int>>(<!ARGUMENT_TYPE_MISMATCH!>produce<Invariant<V>>()<!>)
+        consume<Invariant<V>>(<!ARGUMENT_TYPE_MISMATCH!>produce<Invariant<Int>>()<!>)
     }
 }
