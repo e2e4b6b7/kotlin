@@ -28,7 +28,7 @@ fun <T> foo(x: Expr2.ConstExpr<T>) {
     }
 }
 
-sealed class Expr3<out T> {
+sealed class Expr3<T> {
     class NumVal<T : Number> : Expr3<T>()
     class ActualNum : Expr3<Number>()
     object ActualNumObject : Expr3<Number>()
@@ -37,12 +37,12 @@ sealed class Expr3<out T> {
 fun <T> foo2(e: Expr3<T>) {
     when(e) {
         is Expr3.NumVal<*> -> {
-            consume<T>(produce<Number>())
-            consume<Number>(<!ARGUMENT_TYPE_MISMATCH!>produce<T>()<!>)
+            consume<T>(<!ARGUMENT_TYPE_MISMATCH!>produce<Number>()<!>)
+            consume<Number>(produce<T>())
         }
         is Expr3.ActualNum -> {
             consume<T>(produce<Number>())
-            consume<Number>(<!ARGUMENT_TYPE_MISMATCH!>produce<T>()<!>)
+            consume<Number>(produce<T>())
         }
         Expr3.ActualNumObject -> {
             consume<T>(produce<Number>())
@@ -50,4 +50,10 @@ fun <T> foo2(e: Expr3<T>) {
         }
         else -> TODO()
     }
+}
+
+fun <T> foo2as(e: Expr3<T>) {
+    e as Expr3.NumVal<*>
+    consume<T>(<!ARGUMENT_TYPE_MISMATCH!>produce<Number>()<!>)
+    consume<Number>(produce<T>())
 }

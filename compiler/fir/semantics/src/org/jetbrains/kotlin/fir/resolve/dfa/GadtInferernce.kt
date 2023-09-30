@@ -29,7 +29,7 @@ private data class ComplexInferredConstraint(val relation: TypesRelation, val aT
 
 fun inferredConstraints(flow: PersistentFlow, typeContext: ConeTypeContext): List<SimpleInferredConstraint> = with(typeContext) {
     val intersections = collectInferredIntersections(flow)
-    val typeVariables = mutableSetOf<ConeTypeVariableType>()
+    val typeVariables = mutableMapOf<ConeTypeVariableType, VariableBounds>()
     val constraints = intersections.flatMap { inferComplexConstraints(it, typeVariables) }
     return transformToSimpleConstraints(constraints, typeVariables)
 }
@@ -47,12 +47,15 @@ private fun collectInferredIntersections(flow: PersistentFlow): List<Iterable<Co
 
 private fun ConeTypeContext.inferComplexConstraints(
     intersection: Iterable<ConeKotlinType>,
-    typeVariables: MutableCollection<ConeTypeVariableType>,
+    typeVariables: MutableMap<ConeTypeVariableType, VariableBounds>,
 ): List<ComplexInferredConstraint> {
+    fun newVariable(bounds: List<KotlinTypeMarker>): ConeTypeProjection =
+        ConeTypeVariable("*").defaultType.also { typeVariables[it] = VariableBounds(bounds) }
+
     val types = intersection
         .flatMap { if (it is ConeIntersectionType) it.intersectedTypes else listOf(it) }
         .map(this@inferComplexConstraints::prepared)
-        .map { type -> marked(type) { ConeTypeVariable("*").defaultType.also { typeVariables.add(it) } } }
+        .map { type -> marked(type, ::newVariable) }
     return buildList {
         for (i in types.indices) {
             for (j in i + 1 until types.size) {
@@ -100,16 +103,18 @@ private fun ConeTypeContext.inferComplexConstraints(aType: SimpleTypeMarker, bTy
         }
     }
 
-private inline fun ConeTypeContext.marked(
+private fun ConeTypeContext.marked(
     typePrepared: SimpleTypeMarker,
-    crossinline newVariable: () -> ConeTypeProjection,
+    newVariable: (List<KotlinTypeMarker>) -> ConeTypeProjection,
 ): SimpleTypeMarker {
+    if (typePrepared.argumentsCount() == 0) return typePrepared
+
     require(typePrepared is ConeKotlinType)
-    return if (typePrepared.argumentsCount() == 0) typePrepared
-    else typePrepared.withArguments { argument ->
+    val arguments = typePrepared.typeArguments.zip(typePrepared.typeConstructor().getParameters()).map { (argument, parameter) ->
         argument.type?.let { type -> argument.replaceType(type.withChildParameterAttribute) as ConeTypeProjection }
-            ?: newVariable()
+            ?: newVariable(parameter.getUpperBounds())
     }
+    return typePrepared.withArguments(arguments.toTypedArray())
 }
 
 private fun ConeTypeContext.forwardMark(typePrepared: SimpleTypeMarker): SimpleTypeMarker {
@@ -236,11 +241,11 @@ private fun getArgumentsRelationForSubtyping(
         }
     }
 
-private class VariableBounds {
+private class VariableBounds(upperBounds: List<KotlinTypeMarker>) {
     // todo: use set & do not process duplicates
     // todo: if we found first equal constraint, we can add only constraints to that type
     private val lowerBounds = mutableListOf<KotlinTypeMarker>()
-    private val upperBounds = mutableListOf<KotlinTypeMarker>()
+    private val upperBounds = upperBounds.toMutableList()
 
     fun addNewBound(
         relation: TypesRelation,
@@ -271,12 +276,11 @@ private class VariableBounds {
 
 private fun ConeTypeContext.transformToSimpleConstraints(
     constraints: List<ComplexInferredConstraint>,
-    typeVariables: MutableSet<ConeTypeVariableType>,
+    variablesBounds: Map<ConeTypeVariableType, VariableBounds>,
 ): List<SimpleInferredConstraint> {
     val queue = constraints.toMutableList()
     val visited = mutableSetOf<ComplexInferredConstraint>()
     val simpleConstraints = mutableListOf<SimpleInferredConstraint>()
-    val variablesBounds = typeVariables.keysToMap { VariableBounds() }
 
     while (queue.isNotEmpty()) {
         val constraint = queue.removeLast()
