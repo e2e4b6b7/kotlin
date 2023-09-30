@@ -189,6 +189,13 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
                 approvedTypeStatements[variable] = statement.toPersistent()
             }
         }
+        if (union) {
+            flows.forEach { typeIntersections.addAll(it.allTypeIntersections) }
+        } else {
+            // to implement intersection we have to solve all intersection and then intersect inferred subtypings.
+            // To implement this, I guess we have to store inferred subtypings in flow instead of intersections.
+            // todo
+        }
     }
 
     private fun MutableFlow.replaceVariable(variable: RealVariable, replacement: RealVariable?) {
