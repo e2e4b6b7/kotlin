@@ -35,18 +35,22 @@ sealed class Expr3<T> {
 }
 
 fun <T> foo2(e: Expr3<T>) {
-    when(e) {
-        is Expr3.NumVal<*> -> {
+    when {
+        e is Expr3.NumVal<*> -> {
             consume<T>(<!ARGUMENT_TYPE_MISMATCH!>produce<Number>()<!>)
             consume<Number>(produce<T>())
         }
-        is Expr3.ActualNum -> {
+        e is Expr3.ActualNum -> {
             consume<T>(produce<Number>())
             consume<Number>(produce<T>())
         }
-        Expr3.ActualNumObject -> {
-            consume<T>(produce<Number>())
+        e == Expr3.ActualNumObject -> {
+            consume<T>(<!ARGUMENT_TYPE_MISMATCH!>produce<Number>()<!>)
             consume<Number>(<!ARGUMENT_TYPE_MISMATCH!>produce<T>()<!>)
+        }
+        Expr3.ActualNumObject == e -> {
+            consume<T>(produce<Number>())
+            consume<Number>(produce<T>())
         }
         else -> TODO()
     }
