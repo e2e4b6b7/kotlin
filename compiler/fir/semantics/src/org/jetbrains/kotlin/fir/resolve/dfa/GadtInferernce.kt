@@ -139,6 +139,8 @@ class ChildParameter : ConeAttribute<ChildParameter>() {
     override fun toString(): String = "@ChildParameter"
     override val key: KClass<out ChildParameter>
         get() = ChildParameter::class
+    override val keepInInferredDeclarationType: Boolean
+        get() = true
 }
 
 private val ConeKotlinType.withChildParameterAttribute

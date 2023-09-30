@@ -358,7 +358,6 @@ abstract class FirDataFlowAnalyzer(
                         val expressionVariable = variableStorage.createSynthetic(typeOperatorCall)
                         if (operandVariable != null) {
                             if (operandVariable.isReal()) {
-                                operandVariable as RealVariable // bug in Kotlin compiler. Does not work with this cast
                                 flow.addImplication((expressionVariable eq isType) implies (operandVariable typeEq conversionType))
                             }
                             if (!conversionType.canBeNull) {
@@ -377,7 +376,6 @@ abstract class FirDataFlowAnalyzer(
             FirOperation.AS -> {
                 if (operandVariable != null) {
                     if (operandVariable.isReal()) {
-                        operandVariable as RealVariable // bug in Kotlin compiler. Does not work with this cast
                         flow.addVariableTypeStatement(operandVariable typeEq conversionType)
                     }
                     if (!conversionType.canBeNull) {
@@ -396,7 +394,6 @@ abstract class FirDataFlowAnalyzer(
                 if (operandVariable != null) {
                     flow.addImplication((expressionVariable notEq null) implies (operandVariable notEq null))
                     if (operandVariable.isReal()) {
-                        operandVariable as RealVariable // bug in Kotlin compiler. Does not work with this cast
                         flow.addImplication((expressionVariable notEq null) implies (operandVariable typeEq conversionType))
                     }
                 }
