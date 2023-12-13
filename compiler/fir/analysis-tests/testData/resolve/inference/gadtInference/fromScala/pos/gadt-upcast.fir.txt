@@ -1,0 +1,36 @@
+FILE: gadt-upcast.kt
+    public abstract interface TagA<A> : R|kotlin/Any| {
+    }
+    public abstract interface TagB<B> : R|kotlin/Any| {
+    }
+    public abstract interface TagC<C> : R|kotlin/Any| {
+    }
+    public abstract interface TriTag<A, B, C> : R|TagA<A>|, R|TagB<B>|, R|TagC<C>| {
+    }
+    public final class IntStrCharTag : R|TagA<kotlin/Int>|, R|TagB<kotlin/String>|, R|TagC<kotlin/Char>| {
+        public constructor(): R|IntStrCharTag| {
+            super<R|TagC<kotlin/Char>|>()
+        }
+
+    }
+    public final fun <A, B, C> get(it: R|TriTag<A, B, C>|): <ERROR TYPE REF: Symbol not found for Triple> {
+        ^get when (R|<local>/it|) {
+            ($subj$ is R|IntStrCharTag|) ->  {
+                <Unresolved name: Triple>#(Int(0), String(zero), Char(0))
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun main(): R|kotlin/Unit| {
+        lval ret: <ERROR TYPE REF: Symbol not found for Triple> = R|/get|<R|kotlin/Int|, R|kotlin/String|, R|kotlin/Char|>(object : R|IntStrCharTag|, R|TriTag<kotlin/Int, kotlin/String, kotlin/Char>| {
+            private constructor(): R|<anonymous>| {
+                super<R|IntStrCharTag|>()
+            }
+
+        }
+        )
+        <Unresolved name: println>#(R|<local>/ret|)
+    }

@@ -1,0 +1,32 @@
+FILE: gadt-alias-injectivity.kt
+    public sealed class EQ<A, B> : R|kotlin/Any| {
+        protected constructor<A, B>(): R|EQ<A, B>| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final class Refl<T> : R|EQ<T, T>| {
+            public constructor<T>(): R|EQ.Refl<T>| {
+                super<R|EQ<T, T>|>()
+            }
+
+        }
+
+    }
+    public final typealias FooB<X> = R|kotlin/Pair<X, X>|
+    public final fun <X, Y> fooB(x: R|X|, eq: R|EQ<FooB<X>, FooB<Y>>|): R|Y| {
+        ^fooB when (R|<local>/eq|) {
+            ($subj$ is R|EQ.Refl<*>|) ->  {
+                R|<local>/x|
+            }
+        }
+
+    }
+    public final typealias FooD<X> = R|kotlin/Pair<kotlin/Int, kotlin/Int>|
+    public final fun <X, Y> fooD(x: R|X|, eq: R|EQ<FooD<X>, FooD<Y>>|): R|Y| {
+        ^fooD when (R|<local>/eq|) {
+            ($subj$ is R|EQ.Refl<*>|) ->  {
+                R|<local>/x|
+            }
+        }
+
+    }

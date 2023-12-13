@@ -1,0 +1,27 @@
+FILE: gadt-foo.kt
+    public sealed class Exp<T> : R|kotlin/Any| {
+        protected constructor<T>(): R|Exp<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class Var<T> : R|Exp<T>| {
+        public constructor<T>(name: R|kotlin/String|): R|Var<T>| {
+            super<R|Exp<T>|>()
+        }
+
+        public final val name: R|kotlin/String| = R|<local>/name|
+            public get(): R|kotlin/String|
+
+    }
+    public final fun <T> env(x: R|Var<T>|): R|T| {
+        ^env R|kotlin/TODO|()
+    }
+    public final fun <S> eval(e: R|Exp<S>|): R|S| {
+        ^eval when (R|<local>/e|) {
+            ($subj$ is R|Var<S>|) ->  {
+                R|/env|<R|S|>(R|<local>/e|)
+            }
+        }
+
+    }

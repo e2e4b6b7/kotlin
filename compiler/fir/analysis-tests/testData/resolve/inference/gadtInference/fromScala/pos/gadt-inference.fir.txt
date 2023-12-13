@@ -1,0 +1,113 @@
+FILE: gadt-inference.kt
+    public sealed class Option<out T> : R|kotlin/Any| {
+        protected constructor<out T>(): R|Option<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final data class Some<out T> : R|Option<T>| {
+            public constructor<out T>(value: R|T|): R|Option.Some<T>| {
+                super<R|Option<T>|>()
+            }
+
+            public final val value: R|T| = R|<local>/value|
+                public get(): R|T|
+
+            public final operator fun component1(): R|T|
+
+            public final fun copy(value: R|T| = this@R|/Option.Some|.R|/Option.Some.value|): R|Option.Some<T>|
+
+        }
+
+        public final object None : R|Option<kotlin/Nothing>| {
+            private constructor(): R|Option.None| {
+                super<R|Option<kotlin/Nothing>|>()
+            }
+
+        }
+
+    }
+    public sealed class Expr<T> : R|kotlin/Any| {
+        protected constructor<T>(): R|Expr<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final data class StrLit : R|Expr<kotlin/String>| {
+            public constructor(s: R|kotlin/String|): R|Expr.StrLit| {
+                super<R|Expr<kotlin/String>|>()
+            }
+
+            public final val s: R|kotlin/String| = R|<local>/s|
+                public get(): R|kotlin/String|
+
+            public final operator fun component1(): R|kotlin/String|
+
+            public final fun copy(s: R|kotlin/String| = this@R|/Expr.StrLit|.R|/Expr.StrLit.s|): R|Expr.StrLit|
+
+        }
+
+        public final data class IntLit : R|Expr<kotlin/Int>| {
+            public constructor(i: R|kotlin/Int|): R|Expr.IntLit| {
+                super<R|Expr<kotlin/Int>|>()
+            }
+
+            public final val i: R|kotlin/Int| = R|<local>/i|
+                public get(): R|kotlin/Int|
+
+            public final operator fun component1(): R|kotlin/Int|
+
+            public final fun copy(i: R|kotlin/Int| = this@R|/Expr.IntLit|.R|/Expr.IntLit.i|): R|Expr.IntLit|
+
+        }
+
+    }
+    public final fun <T> eval(e: R|Expr<T>|): R|T| {
+        ^eval when (R|<local>/e|) {
+            ($subj$ is R|Expr.StrLit|) ->  {
+                lval a: R|kotlin/String| = (R|kotlin/TODO|() as R|T|)
+                R|<local>/e|.R|/Expr.StrLit.s|
+            }
+            ($subj$ is R|Expr.IntLit|) ->  {
+                lval a: R|kotlin/Int| = (R|kotlin/TODO|() as R|T|)
+                R|<local>/e|.R|/Expr.IntLit.i|
+            }
+        }
+
+    }
+    public final fun <T> nested(o: R|Option<Expr<T>>|): R|T?| {
+        ^nested when (R|<local>/o|) {
+            ($subj$ is R|Option.Some<Expr<T>>|) ->  {
+                when (lval e: R|Expr<T>| = R|<local>/o|.R|SubstitutionOverride</Option.Some.value: R|Expr<T>|>|) {
+                    ($subj$ is R|Expr.StrLit|) ->  {
+                        lval a: R|kotlin/String| = (R|kotlin/TODO|() as R|T|)
+                        R|<local>/e|.R|/Expr.StrLit.s|
+                    }
+                    ($subj$ is R|Expr.IntLit|) ->  {
+                        lval a: R|kotlin/Int| = (R|kotlin/TODO|() as R|T|)
+                        R|<local>/e|.R|/Expr.IntLit.i|
+                    }
+                }
+
+            }
+            ($subj$ is R|Option.None|) ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> local(e: R|Expr<T>|): R|T| {
+        local final fun <T> eval(e: R|Expr<T>|): R|T| {
+            ^eval when (R|<local>/e|) {
+                ($subj$ is R|Expr.StrLit|) ->  {
+                    lval a: R|kotlin/String| = (R|kotlin/TODO|() as R|T|)
+                    R|<local>/e|.R|/Expr.StrLit.s|
+                }
+                ($subj$ is R|Expr.IntLit|) ->  {
+                    lval a: R|kotlin/Int| = (R|kotlin/TODO|() as R|T|)
+                    R|<local>/e|.R|/Expr.IntLit.i|
+                }
+            }
+
+        }
+
+        ^local R|<local>/eval|<R|T|>(R|<local>/e|)
+    }

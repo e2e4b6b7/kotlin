@@ -1,0 +1,68 @@
+FILE: gadt-banal.kt
+    public final data class Box<A> : R|kotlin/Any| {
+        public constructor<A>(a: R|A|): R|Box<A>| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val a: R|A| = R|<local>/a|
+            public get(): R|A|
+
+        public final operator fun component1(): R|A|
+
+        public final fun copy(a: R|A| = this@R|/Box|.R|/Box.a|): R|Box<A>|
+
+    }
+    public sealed class T<A> : R|kotlin/Any| {
+        protected constructor<A>(): R|T<A>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final data class StrLit : R|T<kotlin/String>| {
+        public constructor(v: R|kotlin/String|): R|StrLit| {
+            super<R|T<kotlin/String>|>()
+        }
+
+        public final val v: R|kotlin/String| = R|<local>/v|
+            public get(): R|kotlin/String|
+
+        public final operator fun component1(): R|kotlin/String|
+
+        public final fun copy(v: R|kotlin/String| = this@R|/StrLit|.R|/StrLit.v|): R|StrLit|
+
+    }
+    public final data class IntLit : R|T<kotlin/Int>| {
+        public constructor(v: R|kotlin/Int|): R|IntLit| {
+            super<R|T<kotlin/Int>|>()
+        }
+
+        public final val v: R|kotlin/Int| = R|<local>/v|
+            public get(): R|kotlin/Int|
+
+        public final operator fun component1(): R|kotlin/Int|
+
+        public final fun copy(v: R|kotlin/Int| = this@R|/IntLit|.R|/IntLit.v|): R|IntLit|
+
+    }
+    public final fun <A> evul(t: R|T<A>|): R|A| {
+        ^evul when (R|<local>/t|) {
+            ($subj$ is R|StrLit|) ->  {
+                (R|<local>/t|.R|/StrLit.v| as R|kotlin/Any|)
+            }
+            ($subj$ is R|IntLit|) ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <A> noeval(t: R|T<A>|): R|Box<A>| {
+        ^noeval when (R|<local>/t|) {
+            ($subj$ is R|StrLit|) ->  {
+                R|/Box.Box|<R|kotlin/Any|>(R|<local>/t|.R|/StrLit.v|)
+            }
+            ($subj$ is R|IntLit|) ->  {
+                R|/Box.Box|<R|kotlin/Nothing|>(R|kotlin/TODO|())
+            }
+        }
+
+    }
