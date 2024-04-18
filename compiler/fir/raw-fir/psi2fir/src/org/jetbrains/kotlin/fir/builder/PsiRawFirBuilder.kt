@@ -1517,6 +1517,7 @@ open class PsiRawFirBuilder(
                             /**
                              * Here we are generating members for data class.
                              * Firstly, we re-extract primary constructor parameters.
+                             * Actually, all of them have to be val or var, but this is the responsibility of the checkers.
                              */
                             val zippedParameters =
                                 classOrObject.primaryConstructorParameters.filter { it.hasValOrVar() } zip declarations.filterIsInstance<FirProperty>()
