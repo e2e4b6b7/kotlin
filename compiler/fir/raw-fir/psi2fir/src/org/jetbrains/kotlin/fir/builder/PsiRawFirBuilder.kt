@@ -1423,8 +1423,17 @@ open class PsiRawFirBuilder(
                     isExternal = classOrObject.hasModifier(EXTERNAL_KEYWORD)
                 }
 
+                /***
+                 * Something interesting starts here.
+                 * withCapturedTypeParameters -- push (and pop at the end) type parameters (generics) to the typing context
+                 * Why do we push an empty list?
+                 * 🤷
+                 */
                 withCapturedTypeParameters(status.isInner || isLocal, sourceElement, listOf()) {
                     var delegatedFieldsMap: Map<Int, FirFieldSymbol>?
+                    /***
+                     * Class builder
+                     */
                     buildRegularClass {
                         source = sourceElement
                         moduleData = baseModuleData
@@ -1438,15 +1447,25 @@ open class PsiRawFirBuilder(
                         classOrObject.extractAnnotationsTo(this)
                         classOrObject.extractTypeParametersTo(this, symbol)
 
+                        /***
+                         * Actually push type parameters to the typing context
+                         */
                         context.appendOuterTypeParameters(ignoreLastLevel = true, typeParameters)
                         context.pushFirTypeParameters(
                             status.isInner || isLocal,
                             typeParameters.subList(0, classOrObject.typeParameters.size)
                         )
 
+                        /***
+                         * Register type of `this` variable
+                         */
                         val delegatedSelfType = classOrObject.toDelegatedSelfType(this)
                         registerSelfType(delegatedSelfType)
 
+                        /***
+                         * Register type of `super` variable.
+                         * Also convert primary constructor into FIR constructor
+                         */
                         val (delegatedSuperType, extractedDelegatedFieldsMap) = classOrObject.extractSuperTypeListEntriesTo(
                             this,
                             delegatedSelfType,
@@ -1457,9 +1476,12 @@ open class PsiRawFirBuilder(
                         )
                         delegatedFieldsMap = extractedDelegatedFieldsMap
 
+                        /** Psi primary constructor */
                         val primaryConstructor = classOrObject.primaryConstructor
+                        /** Fir primary constructor */
                         val firPrimaryConstructor = declarations.firstOrNull { it is FirConstructor } as? FirConstructor
                         if (primaryConstructor != null && firPrimaryConstructor != null) {
+                            /** Add properties from primary constructor */
                             primaryConstructor.valueParameters.zip(
                                 firPrimaryConstructor.valueParameters
                             ).forEach { (ktParameter, firParameter) ->
@@ -1469,6 +1491,9 @@ open class PsiRawFirBuilder(
                             }
                         }
 
+                        /***
+                         * Add declarations from class body
+                         */
                         for (declaration in classOrObject.declarations) {
                             addDeclaration(
                                 declaration.toFirDeclaration(
@@ -1489,8 +1514,15 @@ open class PsiRawFirBuilder(
                         }
 
                         if (classOrObject.hasModifier(DATA_KEYWORD) && firPrimaryConstructor != null) {
+                            /**
+                             * Here we are generating members for data class.
+                             * Firstly, we re-extract primary constructor parameters.
+                             */
                             val zippedParameters =
                                 classOrObject.primaryConstructorParameters.filter { it.hasValOrVar() } zip declarations.filterIsInstance<FirProperty>()
+                            /**
+                             * The other logic is in [DataClassMembersGenerator]
+                             */
                             DataClassMembersGenerator(
                                 classOrObject,
                                 this,
@@ -1523,6 +1555,9 @@ open class PsiRawFirBuilder(
                             ).generate()
                         }
 
+                        /***
+                         * Generate functions for enum class
+                         */
                         if (classOrObject.hasModifier(ENUM_KEYWORD)) {
                             generateValuesFunction(
                                 baseModuleData,

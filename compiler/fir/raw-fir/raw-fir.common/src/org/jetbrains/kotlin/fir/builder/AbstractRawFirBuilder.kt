@@ -936,6 +936,10 @@ abstract class AbstractRawFirBuilder<T>(val baseSession: FirSession, val context
         private val addValueParameterAnnotations: FirValueParameterBuilder.(T) -> Unit,
     ) {
         fun generate() {
+            /**
+             * Skip generating synthetic members for data objects.
+             * (it only have `toString` function that is not generated here)
+             */
             if (classBuilder.classKind != ClassKind.OBJECT) {
                 generateComponentFunctions()
                 generateCopyFunction()
@@ -946,13 +950,32 @@ abstract class AbstractRawFirBuilder<T>(val baseSession: FirSession, val context
         private fun generateComponentFunctions() {
             var componentIndex = 1
             for ((sourceNode, firProperty) in zippedParameters) {
+                /**
+                 * Skip non-properties. (Actually, it was already filtered in the caller of this function)
+                 */
                 if (!firProperty.isVal && !firProperty.isVar) continue
+                /**
+                 * Generate name for component function.
+                 */
                 val name = Name.identifier("component$componentIndex")
                 componentIndex++
+                /**
+                 * Generate component function using builder dsl.
+                 */
                 val componentFunction = buildSimpleFunction {
+                    /**
+                     * Fake source element because component function is not present in the source code.
+                     */
                     source = sourceNode?.toFirSourceElement(KtFakeSourceElementKind.DataClassGeneratedMembers)
                     moduleData = baseModuleData
+                    /**
+                     * Synthetic origin because component function is not present in the source code.
+                     */
                     origin = FirDeclarationOrigin.Synthetic.DataClassMember
+                    /**
+                     * Copy a type of property with fake source element kind.
+                     * (type there is not a type from type system, it is a type from source code)
+                     */
                     returnTypeRef = firProperty.returnTypeRef.copyWithNewSourceKind(KtFakeSourceElementKind.DataClassGeneratedMembers)
                     this.name = name
                     status = FirDeclarationStatusImpl(firProperty.visibility, Modality.FINAL).apply {
@@ -964,6 +987,9 @@ abstract class AbstractRawFirBuilder<T>(val baseSession: FirSession, val context
                 }.also {
                     firProperty.componentFunctionSymbol = it.symbol
                 }
+                /**
+                 * Register component function to class.
+                 */
                 classBuilder.addDeclaration(componentFunction)
             }
         }
@@ -1157,6 +1183,10 @@ fun <TBase, TSource : TBase, TParameter : TBase> FirRegularClassBuilder.createDa
         dispatchReceiverType = dispatchReceiver
         resolvePhase = this@createDataClassCopyFunction.resolvePhase
         status = if (isFromLibrary) {
+            /**
+             * AFAIK effective visibility is the visibility with respect to the containing classes.
+             * While the visibility is the visibility as declared in the source code.
+             */
             FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
         } else {
             FirDeclarationStatusImpl(Visibilities.Public, Modality.FINAL)
@@ -1166,6 +1196,9 @@ fun <TBase, TSource : TBase, TParameter : TBase> FirRegularClassBuilder.createDa
             val parameterSource = toFirSource(ktParameter, KtFakeSourceElementKind.DataClassGeneratedMembers)
             val propertyReturnTypeRef =
                 createParameterTypeRefWithSourceKind(firProperty, KtFakeSourceElementKind.DataClassGeneratedMembers)
+            /**
+             * Generate arguments using dsl.
+             */
             valueParameters += buildValueParameter {
                 source = parameterSource
                 containingFunctionSymbol = this@buildSimpleFunction.symbol
@@ -1174,6 +1207,9 @@ fun <TBase, TSource : TBase, TParameter : TBase> FirRegularClassBuilder.createDa
                 returnTypeRef = propertyReturnTypeRef
                 name = propertyName
                 symbol = FirValueParameterSymbol(propertyName)
+                /**
+                 * Default is to copy the value of the property.
+                 */
                 defaultValue = generateComponentAccess(parameterSource, firProperty, classTypeRef, propertyReturnTypeRef)
                 isCrossinline = false
                 isNoinline = false
