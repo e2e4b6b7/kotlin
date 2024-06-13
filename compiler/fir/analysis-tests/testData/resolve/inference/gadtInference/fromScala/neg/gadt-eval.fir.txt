@@ -1,0 +1,50 @@
+FILE: gadt-eval.kt
+    public sealed class Exp<T> : R|kotlin/Any| {
+        protected constructor<T>(): R|Exp<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class Lit : R|Exp<kotlin/Int>| {
+        public constructor(value: R|kotlin/Int|): R|Lit| {
+            super<R|Exp<kotlin/Int>|>()
+        }
+
+        public final val value: R|kotlin/Int| = R|<local>/value|
+            public get(): R|kotlin/Int|
+
+    }
+    public final class Pair<A, B> : R|Exp<Pair<A, B>>| {
+        public constructor<A, B>(fst: R|Exp<A>|, snd: R|Exp<B>|): R|Pair<A, B>| {
+            super<R|Exp<Pair<A, B>>|>()
+        }
+
+        public final val fst: R|Exp<A>| = R|<local>/fst|
+            public get(): R|Exp<A>|
+
+        public final val snd: R|Exp<B>| = R|<local>/snd|
+            public get(): R|Exp<B>|
+
+    }
+    public final fun <T> eval(e: R|Exp<T>|): R|T| {
+        ^eval when (R|<local>/e|) {
+            ($subj$ is R|Lit|) ->  {
+                R|<local>/e|.R|/Lit.value|
+            }
+            ($subj$ is R|Pair<*, *>|) ->  {
+                R|kotlin/Pair.Pair|<R|kotlin/Any?|, R|kotlin/Any?|>(R|/eval|<R|CapturedType(out kotlin/Any?)|>(R|<local>/e|.R|SubstitutionOverride</Pair.fst: R|Exp<CapturedType(*)>|>|), R|/eval|<R|CapturedType(out kotlin/Any?)|>(R|<local>/e|.R|SubstitutionOverride</Pair.fst: R|Exp<CapturedType(*)>|>|))
+            }
+        }
+
+    }
+    public final fun <T> eval2(e: R|Exp<T>|): R|T| {
+        ^eval2 when (R|<local>/e|) {
+            ($subj$ is R|Lit|) ->  {
+                R|<local>/e|.R|/Lit.value|
+            }
+            ($subj$ is R|Pair<*, *>|) ->  {
+                R|kotlin/Pair.Pair|<R|kotlin/Any?|, R|kotlin/Any?|>(R|/eval|<R|CapturedType(out kotlin/Any?)|>(R|<local>/e|.R|SubstitutionOverride</Pair.snd: R|Exp<CapturedType(*)>|>|), R|/eval|<R|CapturedType(out kotlin/Any?)|>(R|<local>/e|.R|SubstitutionOverride</Pair.snd: R|Exp<CapturedType(*)>|>|))
+            }
+        }
+
+    }

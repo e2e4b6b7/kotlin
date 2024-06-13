@@ -16,16 +16,43 @@ import kotlin.contracts.contract
 data class PersistentTypeStatement(
     override val variable: RealVariable,
     override val exactType: PersistentSet<ConeKotlinType>,
-) : TypeStatement()
+) : VariableTypeStatement()
 
 class MutableTypeStatement(
     override val variable: RealVariable,
     override val exactType: MutableSet<ConeKotlinType> = linkedSetOf(),
-) : TypeStatement()
+) : VariableTypeStatement()
 
 // --------------------------------------- Aliases ---------------------------------------
 
-typealias TypeStatements = Map<RealVariable, TypeStatement>
+typealias VariableTypeStatements = Map<RealVariable, VariableTypeStatement>
+typealias TemporalTypeStatements = Set<TemporalValueTypeStatement>
+
+abstract class TypeStatements {
+    abstract val variableStatements: VariableTypeStatements
+    abstract val temporalValueStatements: TemporalTypeStatements
+}
+
+data class TypeStatementsBuilder<T : VariableTypeStatement>(
+    override val variableStatements: MutableMap<RealVariable, T>,
+    override val temporalValueStatements: MutableSet<TemporalValueTypeStatement>,
+) : TypeStatements()
+
+fun <T : VariableTypeStatement> newTypeStatementsBuilder(): TypeStatementsBuilder<T> =
+    TypeStatementsBuilder(mutableMapOf(), mutableSetOf())
+
+fun newTypeStatements(variableStatements: VariableTypeStatements, temporalStatements: TemporalTypeStatements): TypeStatements =
+    object : TypeStatements() {
+        override val variableStatements: VariableTypeStatements = variableStatements
+        override val temporalValueStatements: TemporalTypeStatements = temporalStatements
+    }
+
+fun emptyTypeStatements(): TypeStatements = newTypeStatements(emptyMap(), emptySet())
+fun typeStetementsOf(vararg statements: VariableTypeStatement): TypeStatements =
+    newTypeStatements(statements.associateBy { it.variable }, emptySet())
+
+fun TypeStatements.isEmpty(): Boolean = variableStatements.isEmpty() && temporalValueStatements.isEmpty()
+fun TypeStatements.isNotEmpty(): Boolean = !isEmpty()
 
 // --------------------------------------- DSL ---------------------------------------
 
@@ -44,6 +71,9 @@ infix fun OperationStatement.implies(effect: Statement): Implication = Implicati
 
 infix fun RealVariable.typeEq(type: ConeKotlinType): MutableTypeStatement =
     MutableTypeStatement(this, if (type is ConeErrorType) linkedSetOf() else linkedSetOf(type))
+
+infix fun ConeKotlinType.hasIntersectionWith(other: ConeKotlinType) =
+    TemporalValueTypeStatement(setOf(this, other))
 
 // --------------------------------------- Utils ---------------------------------------
 

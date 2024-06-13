@@ -3516,6 +3516,190 @@ public class FirPsiDiagnosticTestGenerated extends AbstractFirPsiDiagnosticTest 
                     runTest("compiler/fir/analysis-tests/testData/resolve/inference/builderInference/ifInBuildMap.kt");
                 }
             }
+
+            @Nested
+            @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference")
+            @TestDataPath("$PROJECT_ROOT")
+            public class GadtInference {
+                @Test
+                public void testAllFilesPresentInGadtInference() throws Exception {
+                    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+                }
+
+                @Test
+                @TestMetadata("basicGadt.kt")
+                public void testBasicGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/basicGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("basicGenericsGADT.kt")
+                public void testBasicGenericsGADT() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/basicGenericsGADT.kt");
+                }
+
+                @Test
+                @TestMetadata("builderInferenceGadt.kt")
+                public void testBuilderInferenceGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/builderInferenceGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("conditionsGADT.kt")
+                public void testConditionsGADT() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/conditionsGADT.kt");
+                }
+
+                @Test
+                @TestMetadata("existentialBinding.kt")
+                public void testExistentialBinding() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/existentialBinding.kt");
+                }
+
+                @Test
+                @TestMetadata("exprGadt.kt")
+                public void testExprGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/exprGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("logicGadt.kt")
+                public void testLogicGadt() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/logicGadt.kt");
+                }
+
+                @Test
+                @TestMetadata("scala2Regression.kt")
+                public void testScala2Regression() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/scala2Regression.kt");
+                }
+
+                @Test
+                @TestMetadata("varianceGADT.kt")
+                public void testVarianceGADT() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/varianceGADT.kt");
+                }
+
+                @Nested
+                @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala")
+                @TestDataPath("$PROJECT_ROOT")
+                public class FromScala {
+                    @Test
+                    public void testAllFilesPresentInFromScala() throws Exception {
+                        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+                    }
+
+                    @Nested
+                    @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg")
+                    @TestDataPath("$PROJECT_ROOT")
+                    public class Neg {
+                        @Test
+                        public void testAllFilesPresentInNeg() throws Exception {
+                            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-alias-injectivity.kt")
+                        public void testGadt_alias_injectivity() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg/gadt-alias-injectivity.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-banal.kt")
+                        public void testGadt_banal() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg/gadt-banal.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-banal-nested.kt")
+                        public void testGadt_banal_nested() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg/gadt-banal-nested.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-contradictory-pattern.kt")
+                        public void testGadt_contradictory_pattern() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg/gadt-contradictory-pattern.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-eval.kt")
+                        public void testGadt_eval() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg/gadt-eval.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-injectivity.kt")
+                        public void testGadt_injectivity() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/neg/gadt-injectivity.kt");
+                        }
+                    }
+
+                    @Nested
+                    @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos")
+                    @TestDataPath("$PROJECT_ROOT")
+                    public class Pos {
+                        @Test
+                        public void testAllFilesPresentInPos() throws Exception {
+                            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-GadtStlc.kt")
+                        public void testGadt_GadtStlc() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-GadtStlc.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-banal.kt")
+                        public void testGadt_banal() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-banal.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-complexEQ.kt")
+                        public void testGadt_complexEQ() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-complexEQ.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-eval.kt")
+                        public void testGadt_eval() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-eval.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-foo.kt")
+                        public void testGadt_foo() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-foo.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-infer-ascription.kt")
+                        public void testGadt_infer_ascription() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-infer-ascription.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-inference.kt")
+                        public void testGadt_inference() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-inference.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-simpleEQ.kt")
+                        public void testGadt_simpleEQ() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-simpleEQ.kt");
+                        }
+
+                        @Test
+                        @TestMetadata("gadt-upcast.kt")
+                        public void testGadt_upcast() throws Exception {
+                            runTest("compiler/fir/analysis-tests/testData/resolve/inference/gadtInference/fromScala/pos/gadt-upcast.kt");
+                        }
+                    }
+                }
+            }
         }
 
         @Nested

@@ -1,0 +1,32 @@
+FILE: gadt-simpleEQ.kt
+    public sealed class EQ<A, B> : R|kotlin/Any| {
+        protected constructor<A, B>(): R|EQ<A, B>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class Refl<A> : R|EQ<A, A>| {
+        public constructor<A>(u: R|kotlin/Unit|): R|Refl<A>| {
+            super<R|EQ<A, A>|>()
+        }
+
+        public final val u: R|kotlin/Unit| = R|<local>/u|
+            public get(): R|kotlin/Unit|
+
+    }
+    public final fun <A, B> conform(a: R|A|, eq: R|EQ<A, B>|): R|B| {
+        ^conform when (R|<local>/eq|) {
+            ($subj$ is R|Refl<*>|) ->  {
+                R|<local>/a|
+            }
+        }
+
+    }
+    public final fun <A, B, C, D> conform2(a: R|A|, b: R|B|, eq: R|EQ<kotlin/Pair<A, B>, kotlin/Pair<C, D>>|): R|kotlin/Pair<C, D>| {
+        ^conform2 when (R|<local>/eq|) {
+            ($subj$ is R|Refl<*>|) ->  {
+                R|kotlin/Pair.Pair|<R|A|, R|B|>(R|<local>/a|, R|<local>/b|)
+            }
+        }
+
+    }

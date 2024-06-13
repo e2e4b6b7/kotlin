@@ -1,0 +1,66 @@
+FILE: builderInferenceGadt.kt
+    public final fun <T> transform(v: R|T|): R|T| {
+        ^transform R|kotlin/TODO|()
+    }
+    public final fun <T> consume(v: R|T|): R|kotlin/Unit| {
+        ^consume R|kotlin/TODO|()
+    }
+    public final fun <T> produce(): R|T| {
+        ^produce R|kotlin/TODO|()
+    }
+    public abstract interface Inv<T> : R|kotlin/Any| {
+    }
+    public abstract interface InvInt : R|Inv<kotlin/Int>| {
+    }
+    public final fun <T> gadt - builder inference before(): R|kotlin/collections/List<Inv<T>>| {
+        ^gadt - builder inference before R|kotlin/collections/buildList|<R|Inv<T>|>(<L> = buildList@fun R|kotlin/collections/MutableList<Inv<T>>|.<anonymous>(): R|kotlin/Unit| <inline=Inline, kind=EXACTLY_ONCE>  {
+            this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(R|/produce|<R|Inv<T>|>())
+            when () {
+                (this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.get: R|Stub (chain inference): TypeVariable(E)|>|(Int(0)) is R|InvInt|) ->  {
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|T|>(R|/produce|<R|kotlin/Int|>())
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/Int|>(R|/produce|<R|T|>())
+                }
+            }
+
+        }
+        )
+    }
+    public final fun <T> gadt - builder inference after(): R|kotlin/collections/List<Inv<T>>| {
+        ^gadt - builder inference after R|kotlin/collections/buildList|<R|Inv<T>|>(<L> = buildList@fun R|kotlin/collections/MutableList<Inv<T>>|.<anonymous>(): R|kotlin/Unit| <inline=Inline, kind=EXACTLY_ONCE>  {
+            when () {
+                (this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.get: R|Stub (chain inference): TypeVariable(E)|>|(Int(0)) is R|InvInt|) ->  {
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|T|>(R|/produce|<R|kotlin/Int|>())
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/Int|>(R|/produce|<R|T|>())
+                }
+            }
+
+            this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(R|/produce|<R|Inv<T>|>())
+        }
+        )
+    }
+    public final fun <T> gadt - builder inference consume before(): R|kotlin/collections/List<Inv<T>>| {
+        ^gadt - builder inference consume before R|kotlin/collections/buildList|<R|Inv<T>|>(<L> = buildList@fun R|kotlin/collections/MutableList<Inv<T>>|.<anonymous>(): R|kotlin/Unit| <inline=Inline, kind=EXACTLY_ONCE>  {
+            R|/consume|<R|Inv<T>|>(this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.get: R|Stub (chain inference): TypeVariable(E)|>|(Int(1)))
+            when () {
+                (this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.get: R|Stub (chain inference): TypeVariable(E)|>|(Int(0)) is R|InvInt|) ->  {
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|T|>(R|/produce|<R|kotlin/Int|>())
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/Int|>(R|/produce|<R|T|>())
+                }
+            }
+
+        }
+        )
+    }
+    public final fun <T> gadt - builder inference consume after(): R|kotlin/collections/List<Inv<T>>| {
+        ^gadt - builder inference consume after R|kotlin/collections/buildList|<R|Inv<T>|>(<L> = buildList@fun R|kotlin/collections/MutableList<Inv<T>>|.<anonymous>(): R|kotlin/Unit| <inline=Inline, kind=EXACTLY_ONCE>  {
+            when () {
+                (this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.get: R|Stub (chain inference): TypeVariable(E)|>|(Int(0)) is R|InvInt|) ->  {
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|T|>(R|/produce|<R|kotlin/Int|>())
+                    R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/Int|>(R|/produce|<R|T|>())
+                }
+            }
+
+            R|/consume|<R|Inv<T>|>(this@R|special/anonymous|.R|SubstitutionOverride<kotlin/collections/MutableList.get: R|Stub (chain inference): TypeVariable(E)|>|(Int(1)))
+        }
+        )
+    }

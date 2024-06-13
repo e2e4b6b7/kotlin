@@ -1,0 +1,89 @@
+FILE: varianceGADT.kt
+    public final fun <T> transform(v: R|T|): R|T| {
+        ^transform R|kotlin/TODO|()
+    }
+    public final fun <T> consume(v: R|T|): R|kotlin/Unit| {
+        ^consume R|kotlin/TODO|()
+    }
+    public final fun <T> produce(): R|T| {
+        ^produce R|kotlin/TODO|()
+    }
+    public abstract class ListInt : R|kotlin/collections/List<kotlin/Int>| {
+        public constructor(): R|ListInt| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public abstract class ListString : R|kotlin/collections/List<kotlin/String>| {
+        public constructor(): R|ListString| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final fun <T> list basic test(v: R|kotlin/collections/List<T>|): R|T| {
+        ^list basic test when (R|<local>/v|) {
+            ($subj$ is R|ListInt|) ->  {
+                Int(1)
+            }
+            ($subj$ is R|ListString|) ->  {
+                String(1)
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> list basic reversed test(v: R|kotlin/collections/List<T>|): R|kotlin/Unit| {
+        when (R|<local>/v|) {
+            ($subj$ is R|ListInt|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/Int|>(R|/produce|<R|T|>())
+            }
+            ($subj$ is R|ListString|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/String|>(R|/produce|<R|T|>())
+            }
+        }
+
+    }
+    public final fun <T> list without variable test(v: R|kotlin/collections/List<T>|): R|T| {
+        ^list without variable test when (R|/transform|<R|kotlin/collections/List<T>|>(R|<local>/v|)) {
+            ($subj$ is R|ListInt|) ->  {
+                Int(1)
+            }
+            ($subj$ is R|ListString|) ->  {
+                String(1)
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
+    public final fun <T> list without variable reversed test(v: R|kotlin/collections/List<T>|): R|kotlin/Unit| {
+        when (R|/transform|<R|kotlin/collections/List<T>|>(R|<local>/v|)) {
+            ($subj$ is R|ListInt|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/Int|>(R|/produce|<R|T|>())
+            }
+            ($subj$ is R|ListString|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|kotlin/String|>(R|/produce|<R|T|>())
+            }
+        }
+
+    }
+    public abstract interface Func<in A, out B> : R|kotlin/Any| {
+    }
+    public final class Identity<X> : R|Func<X, X>| {
+        public constructor<X>(): R|Identity<X>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final fun <A, B> foo(func: R|Func<A, B>|): R|kotlin/Unit| {
+        when (R|<local>/func|) {
+            ($subj$ is R|Identity<*>|) ->  {
+                R|/consume<Inapplicable(INAPPLICABLE): /consume>#|<R|A|>(R|/produce|<R|B|>())
+                R|/consume|<R|B|>(R|/produce|<R|A|>())
+            }
+        }
+
+    }

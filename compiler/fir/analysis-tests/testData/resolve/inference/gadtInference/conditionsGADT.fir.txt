@@ -1,0 +1,143 @@
+FILE: conditionsGADT.kt
+    public final fun <T> transform(v: R|T|): R|T| {
+        ^transform R|kotlin/TODO|()
+    }
+    public final fun <T> consume(v: R|T|): R|kotlin/Unit| {
+        ^consume R|kotlin/TODO|()
+    }
+    public final fun <T> produce(): R|T| {
+        ^produce R|kotlin/TODO|()
+    }
+    public abstract interface Box<T> : R|kotlin/Any| {
+    }
+    public abstract interface BoxInt : R|Box<kotlin/Int>| {
+    }
+    public final class BoxIntImpl : R|BoxInt| {
+        public constructor(): R|BoxIntImpl| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final fun <T> while condition inference(): R|T| {
+        lvar v1: R|Box<T>| = R|/produce|<R|Box<T>|>()
+        while((R|<local>/v1| !is R|BoxInt|)) {
+            R|kotlin/TODO|()
+        }
+
+        ^while condition inference Int(1)
+    }
+    public final fun <T> while condition inference with temporal value(v: R|Box<T>|): R|T| {
+        while((R|/transform|<R|Box<T>|>(R|<local>/v|) !is R|BoxInt|)) {
+            R|kotlin/TODO|()
+        }
+
+        ^while condition inference with temporal value Int(1)
+    }
+    public final fun <T> interface eq inference(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ==(R|<local>/v1|, R|<local>/v|) ->  {
+                ^interface eq inference Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> interface eq inference with temporal rvalue(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ==(R|<local>/v1|, R|/transform|<R|Box<T>|>(R|<local>/v|)) ->  {
+                ^interface eq inference with temporal rvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> interface eq inference with temporal lvalue(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ==(R|/transform|<R|BoxInt|>(R|<local>/v1|), R|<local>/v|) ->  {
+                ^interface eq inference with temporal lvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> interface eq inference with temporal lvalue and rvalue(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ==(R|/transform|<R|BoxInt|>(R|<local>/v1|), R|/transform|<R|Box<T>|>(R|<local>/v|)) ->  {
+                ^interface eq inference with temporal lvalue and rvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> refeq inference(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ===(R|<local>/v1|, R|<local>/v|) ->  {
+                ^refeq inference Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> refeq inference with temporal rvalue(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ===(R|<local>/v1|, R|/transform|<R|Box<T>|>(R|<local>/v|)) ->  {
+                ^refeq inference with temporal rvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> refeq inference with temporal lvalue(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ===(R|/transform|<R|BoxInt|>(R|<local>/v1|), R|<local>/v|) ->  {
+                ^refeq inference with temporal lvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> refeq inference with temporal lvalue and rvalue(v: R|Box<T>|, v1: R|BoxInt|): R|T| {
+        when () {
+            ===(R|/transform|<R|BoxInt|>(R|<local>/v1|), R|/transform|<R|Box<T>|>(R|<local>/v|)) ->  {
+                ^refeq inference with temporal lvalue and rvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> final class eq inference(v: R|Box<T>|, v1: R|BoxIntImpl|): R|T| {
+        when () {
+            ==(R|<local>/v1|, R|<local>/v|) ->  {
+                ^final class eq inference Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> final class eq inference with temporal rvalue(v: R|Box<T>|, v1: R|BoxIntImpl|): R|T| {
+        when () {
+            ==(R|<local>/v1|, R|/transform|<R|Box<T>|>(R|<local>/v|)) ->  {
+                ^final class eq inference with temporal rvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> final class eq inference with temporal lvalue(v: R|Box<T>|, v1: R|BoxIntImpl|): R|T| {
+        when () {
+            ==(R|/transform|<R|BoxIntImpl|>(R|<local>/v1|), R|<local>/v|) ->  {
+                ^final class eq inference with temporal lvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }
+    public final fun <T> final class eq inference with temporal lvalue and rvalue(v: R|Box<T>|, v1: R|BoxIntImpl|): R|T| {
+        when () {
+            ==(R|/transform|<R|BoxIntImpl|>(R|<local>/v1|), R|/transform|<R|Box<T>|>(R|<local>/v|)) ->  {
+                ^final class eq inference with temporal lvalue and rvalue Int(1)
+            }
+        }
+
+        R|kotlin/TODO|()
+    }

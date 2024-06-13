@@ -1,0 +1,131 @@
+FILE: existentialBinding.kt
+    public open class Box<T> : R|kotlin/Any| {
+        public constructor<T>(v: R|T|): R|Box<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val v: R|T| = R|<local>/v|
+            public get(): R|T|
+
+    }
+    public final class BoxBox<T> : R|Box<Box<T>>| {
+        public constructor<T>(v: R|Box<T>|): R|BoxBox<T>| {
+            super<R|Box<Box<T>>|>(R|<local>/v|)
+        }
+
+    }
+    public abstract interface A : R|kotlin/Any| {
+    }
+    public abstract interface B : R|kotlin/Any| {
+    }
+    public abstract interface C : R|A|, R|B| {
+    }
+    public abstract interface D : R|C| {
+    }
+    public abstract interface E : R|C| {
+    }
+    public final fun <V> unsound1(box1: R|Box<V>|): R|V| {
+        ^unsound1 when (R|<local>/box1|) {
+            ($subj$ is R|BoxBox<*>|) ->  {
+                R|/Box.Box|<R|<anonymous><V>|>(object : R|B| {
+                    private constructor(): R|<anonymous><V>| {
+                        super<R|kotlin/Any|>()
+                    }
+
+                }
+                )
+            }
+            else ->  {
+                R|<local>/box1|.R|SubstitutionOverride</Box.v: R|V|>|
+            }
+        }
+
+    }
+    public final fun <V> unsound1_(box1: R|Box<V>|): R|V| {
+        when (R|<local>/box1|) {
+            ($subj$ is R|BoxBox<*>|) ->  {
+                ^unsound1_ R|/Box.Box|<R|<anonymous><V>|>(object : R|B| {
+                    private constructor(): R|<anonymous><V>| {
+                        super<R|kotlin/Any|>()
+                    }
+
+                }
+                )
+            }
+            else ->  {
+                ^unsound1_ R|<local>/box1|.R|SubstitutionOverride</Box.v: R|V|>|
+            }
+        }
+
+    }
+    public final fun <V> unsound2(box1: R|Box<V>|, box2: R|BoxBox<*>|): R|V| {
+        when () {
+            ===(R|<local>/box1|, R|<local>/box2|) ->  {
+                ^unsound2 R|/Box.Box|<R|<anonymous><V>|>(object : R|B| {
+                    private constructor(): R|<anonymous><V>| {
+                        super<R|kotlin/Any|>()
+                    }
+
+                }
+                )
+            }
+        }
+
+        ^unsound2 R|<local>/box1|.R|SubstitutionOverride</Box.v: R|V|>|
+    }
+    public final fun <V> unsound3(box1: R|Box<V>|, box2: R|BoxBox<in C>|): R|V| {
+        when () {
+            ===(R|<local>/box1|, R|<local>/box2|) ->  {
+                ^unsound3 R|/Box.Box|<R|<anonymous><V>|>(object : R|B| {
+                    private constructor(): R|<anonymous><V>| {
+                        super<R|kotlin/Any|>()
+                    }
+
+                }
+                )
+            }
+        }
+
+        ^unsound3 R|<local>/box1|.R|SubstitutionOverride</Box.v: R|V|>|
+    }
+    public final fun <V> unsound4(box1: R|Box<V>|, box2: R|BoxBox<out C>|): R|V| {
+        when () {
+            ===(R|<local>/box1|, R|<local>/box2|) ->  {
+                ^unsound4 R|/Box.Box|<R|<anonymous><V>|>(object : R|E| {
+                    private constructor(): R|<anonymous><V>| {
+                        super<R|kotlin/Any|>()
+                    }
+
+                }
+                )
+            }
+        }
+
+        ^unsound4 R|<local>/box1|.R|SubstitutionOverride</Box.v: R|V|>|
+    }
+    public final fun classCastException(): R|kotlin/Unit| {
+        lval bba: R|BoxBox<A>| = R|/BoxBox.BoxBox|<R|A|>(R|/Box.Box|<R|A|>(object : R|A| {
+            private constructor(): R|<anonymous>| {
+                super<R|kotlin/Any|>()
+            }
+
+        }
+        ))
+        lval bbd: R|BoxBox<D>| = R|/BoxBox.BoxBox|<R|D|>(R|/Box.Box|<R|D|>(object : R|D| {
+            private constructor(): R|<anonymous>| {
+                super<R|kotlin/Any|>()
+            }
+
+        }
+        ))
+        lval ba1: R|Box<A>| = R|/unsound1|<R|Box<A>|>(R|<local>/bba|)
+        lval a1: R|A| = R|<local>/ba1|.R|SubstitutionOverride</Box.v: R|A|>|
+        lval ba1_: R|Box<A>| = R|/unsound1_|<R|Box<A>|>(R|<local>/bba|)
+        lval a1_: R|A| = R|<local>/ba1|.R|SubstitutionOverride</Box.v: R|A|>|
+        lval ba2: R|Box<A>| = R|/unsound2|<R|Box<A>|>(R|<local>/bba|, R|<local>/bba|)
+        lval a2: R|A| = R|<local>/ba2|.R|SubstitutionOverride</Box.v: R|A|>|
+        lval ba3: R|Box<A>| = R|/unsound3|<R|Box<A>|>(R|<local>/bba|, R|<local>/bba|)
+        lval a3: R|A| = R|<local>/ba3|.R|SubstitutionOverride</Box.v: R|A|>|
+        lval bd4: R|Box<D>| = R|/unsound4|<R|Box<D>|>(R|<local>/bbd|, R|<local>/bbd|)
+        lval d4: R|D| = R|<local>/bd4|.R|SubstitutionOverride</Box.v: R|D|>|
+    }

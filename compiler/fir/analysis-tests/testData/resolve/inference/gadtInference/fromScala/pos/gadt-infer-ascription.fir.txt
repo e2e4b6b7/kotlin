@@ -1,0 +1,38 @@
+FILE: gadt-infer-ascription.kt
+    public sealed class Var<G, A> : R|kotlin/Any| {
+        protected constructor<G, A>(): R|Var<G, A>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class Z<G, A> : R|Var<ERROR CLASS: Symbol not found for Pair, A>| {
+        public constructor<G, A>(): R|Z<G, A>| {
+            super<R|Var<ERROR CLASS: Symbol not found for Pair, A>|>()
+        }
+
+    }
+    public final class S<G, A, B> : R|Var<ERROR CLASS: Symbol not found for Pair, A>| {
+        public constructor<G, A, B>(x: R|Var<G, A>|): R|S<G, A, B>| {
+            super<R|Var<ERROR CLASS: Symbol not found for Pair, A>|>()
+        }
+
+        public final val x: R|Var<G, A>| = R|<local>/x|
+            public get(): R|Var<G, A>|
+
+    }
+    public final fun <G, A> evalVar(x: R|Var<G, A>|, rho: R|G|): R|A| {
+        ^evalVar when (R|<local>/x|) {
+            ($subj$ is R|Z<*, A>|) ->  {
+                R|<local>/rho|.<Unresolved name: first>#
+            }
+            ($subj$ is R|S<*, A, *>|) ->  {
+                local final fun <G1, B> evalVarS(x1: R|S<G1, A, B>|, x2: R|Var<G, A>|, rho: R|G|): R|A| {
+                    <Unresolved name: require>#(===(R|<local>/x1|, R|<local>/x2|))
+                    ^evalVarS R|/evalVar<Inapplicable(INAPPLICABLE): /evalVar>#|<R|G1|, R|A|>(R|<local>/x1|.R|SubstitutionOverride</S.x: R|Var<G1, A>|>|, R|<local>/rho|.<Unresolved name: second>#)
+                }
+
+                R|<local>/evalVarS|<R|CapturedType(*)|, R|CapturedType(*)|>(R|<local>/x|, R|<local>/x|, R|<local>/rho|)
+            }
+        }
+
+    }

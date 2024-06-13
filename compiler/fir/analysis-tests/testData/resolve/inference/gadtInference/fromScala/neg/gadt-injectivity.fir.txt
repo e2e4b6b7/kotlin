@@ -1,0 +1,26 @@
+FILE: gadt-injectivity.kt
+    public sealed class EQ<A, B> : R|kotlin/Any| {
+        protected constructor<A, B>(): R|EQ<A, B>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class Refl<A> : R|EQ<A, A>| {
+        public constructor<A>(): R|Refl<A>| {
+            super<R|EQ<A, A>|>()
+        }
+
+    }
+    public final fun <A, B, C, D> conform(a: R|A|, b: R|B|, eq: R|EQ<kotlin/Pair<A, B>, kotlin/Pair<C, D>>|): R|C| {
+        ^conform when (R|<local>/eq|) {
+            ($subj$ is R|Refl<*>|) ->  {
+                lval ab: R|kotlin/Pair<A, B>| = R|kotlin/Pair.Pair|<R|A|, R|B|>(R|<local>/a|, R|<local>/b|)
+                lval cd: R|kotlin/Pair<C, D>| = R|<local>/ab|
+                lval bb: R|kotlin/Pair<B, B>| = R|<local>/ab|
+                lval cc: R|kotlin/Pair<C, C>| = R|<local>/cd|
+                lval dd: R|kotlin/Pair<D, D>| = R|<local>/cd|
+                R|<local>/a|
+            }
+        }
+
+    }

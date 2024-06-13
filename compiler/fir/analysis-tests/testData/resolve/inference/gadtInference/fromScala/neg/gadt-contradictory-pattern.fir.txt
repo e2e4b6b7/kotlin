@@ -1,0 +1,36 @@
+FILE: gadt-contradictory-pattern.kt
+    public sealed class Foo<T> : R|kotlin/Any| {
+        protected constructor<T>(): R|Foo<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class Bar1 : R|Foo<kotlin/Int>| {
+        public constructor(): R|Bar1| {
+            super<R|Foo<kotlin/Int>|>()
+        }
+
+    }
+    public final class Bar2 : R|Foo<kotlin/String>| {
+        public constructor(): R|Bar2| {
+            super<R|Foo<kotlin/String>|>()
+        }
+
+    }
+    public final class Bar3 : R|Foo<kotlin/Any>| {
+        public constructor(): R|Bar3| {
+            super<R|Foo<kotlin/Any>|>()
+        }
+
+    }
+    public final fun <T> fail1(x: R|Foo<T>|, y: R|Foo<T>|): R|kotlin/Unit| {
+        when () {
+            (R|<local>/x| is R|Bar1|) && (R|<local>/y| is R|Bar1|) ->  {
+            }
+            (R|<local>/x| is R|Bar1|) && (R|<local>/y| is R|Bar2|) ->  {
+            }
+            else ->  {
+            }
+        }
+
+    }

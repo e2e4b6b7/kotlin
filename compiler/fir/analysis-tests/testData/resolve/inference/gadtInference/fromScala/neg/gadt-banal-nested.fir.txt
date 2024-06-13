@@ -1,0 +1,46 @@
+FILE: gadt-banal-nested.kt
+    public abstract interface I : R|kotlin/Any| {
+    }
+    public sealed class T<A> : R|kotlin/Any| {
+        protected constructor<A>(): R|T<A>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public open class StrLit : R|T<kotlin/String>| {
+        public constructor(v: R|kotlin/String|): R|StrLit| {
+            super<R|T<kotlin/String>|>()
+        }
+
+        public final val v: R|kotlin/String| = R|<local>/v|
+            public get(): R|kotlin/String|
+
+    }
+    public open class IntLit : R|T<kotlin/Int>| {
+        public constructor(v: R|kotlin/Int|): R|IntLit| {
+            super<R|T<kotlin/Int>|>()
+        }
+
+        public final val v: R|kotlin/Int| = R|<local>/v|
+            public get(): R|kotlin/Int|
+
+    }
+    public final fun <A> eval(t: R|T<A>|): R|A| {
+        ^eval when (R|<local>/t|) {
+            ($subj$ is R|I|) ->  {
+                when (R|<local>/t|) {
+                    ($subj$ is R|StrLit|) ->  {
+                        R|<local>/t|.R|/StrLit.v|
+                    }
+                    ($subj$ is R|IntLit|) ->  {
+                        String()
+                    }
+                }
+
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }

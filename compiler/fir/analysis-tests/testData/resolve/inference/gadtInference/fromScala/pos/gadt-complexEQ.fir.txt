@@ -1,0 +1,39 @@
+FILE: gadt-complexEQ.kt
+    public sealed interface EQ<A, B> : R|kotlin/Any| {
+    }
+    public final class Refl<A> : R|EQ<A, A>| {
+        public constructor<A>(): R|Refl<A>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final fun <A, B, C, D> m(e1: R|EQ<A, ERROR CLASS: Symbol not found for Pair>|, e2: R|EQ<A, ERROR CLASS: Symbol not found for Pair>|, d: R|D|): R|A| {
+        ^m when (R|<local>/e1|) {
+            ($subj$ is <ERROR TYPE REF: No type arguments on RHS>) ->  {
+                when (R|<local>/e2|) {
+                    ($subj$ is <ERROR TYPE REF: No type arguments on RHS>) ->  {
+                        lval r1: <ERROR TYPE REF: Symbol not found for Pair> = <Unresolved name: Pair>#(R|<local>/d|, R|<local>/d|)
+                        lval r2: <ERROR TYPE REF: Symbol not found for Pair> = R|<local>/r1|
+                        lval r3: <ERROR TYPE REF: Symbol not found for Pair> = R|<local>/r1|
+                        R|<local>/r1|
+                    }
+                }
+
+            }
+        }
+
+    }
+    public final fun <Z, A, B, C, D> m2(e0: R|EQ<Z, A>|, e1: R|EQ<A, ERROR CLASS: Symbol not found for Pair>|, e2: R|EQ<Z, ERROR CLASS: Symbol not found for Pair>|, d: R|D|): R|Z| {
+        ^m2 when () {
+            (R|<local>/e0| is <ERROR TYPE REF: No type arguments on RHS>) && (R|<local>/e1| is <ERROR TYPE REF: No type arguments on RHS>) && (R|<local>/e2| is <ERROR TYPE REF: No type arguments on RHS>) ->  {
+                lval r1: <ERROR TYPE REF: Symbol not found for Pair> = <Unresolved name: Pair>#(R|<local>/d|, R|<local>/d|)
+                lval r2: <ERROR TYPE REF: Symbol not found for Pair> = R|<local>/r1|
+                lval r3: <ERROR TYPE REF: Symbol not found for Pair> = R|<local>/r1|
+                R|<local>/r1|
+            }
+            else ->  {
+                R|kotlin/TODO|()
+            }
+        }
+
+    }
